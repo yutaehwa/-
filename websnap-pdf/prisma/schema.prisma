@@ -52,8 +52,10 @@ model User {
   stripeSubscriptionId String? @unique
 
   conversions   Conversion[]
+  apiKeys       ApiKey[]
   createdAt     DateTime  @default(now())
 }
+
 
 model VerificationToken {
   identifier String
@@ -86,4 +88,18 @@ model Conversion {
   createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name      String
+  keyHash   String   @unique
+  prefix    String
+  lastUsed  DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
 }
