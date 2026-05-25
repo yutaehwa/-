@@ -24,7 +24,13 @@ async function getBrowser(): Promise<Browser> {
   const executablePath = await chromium.executablePath()
 
   browserInstance = await puppeteer.launch({
-    args: chromium.args,
+    args: [
+      ...chromium.args,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--ignore-certificate-errors',
+      '--disable-web-security',
+    ],
     defaultViewport: { width: 1280, height: 800 },
     executablePath,
     headless: true,
