@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebSnap PDF — 쉽게 배우는 사용법 가이드</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  :root {
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --pink: #ec4899;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: linear-gradient(135deg, #e0e7ff 0%, #fce7f3 50%, #d1fae5 100%);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── 별 배경 ── */
+  .stars {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  }
+  .star {
+    position: absolute;
+    background: #fff;
+    border-radius: 50%;
+    animation: twinkle var(--d, 3s) ease-in-out infinite var(--delay, 0s);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: .2; transform: scale(1); }
+    50%       { opacity: 1;  transform: scale(1.5); }
+  }
+
+  /* ── 전체 래퍼 ── */
+  .wrapper {
+    position: relative; z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── 히어로 ── */
+  .hero {
+    text-align: center;
+    padding: 60px 20px 40px;
+    animation: fadeDown .8s ease both;
+  }
+  .hero .emoji-big {
+    font-size: 80px;
+    display: inline-block;
+    animation: bounce 1.8s ease-in-out infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-18px); }
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 6vw, 3.2rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, var(--blue), var(--purple), var(--pink));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 16px 0 8px;
+    line-height: 1.2;
+  }
+  .hero p {
+    font-size: 1.15rem;
+    color: #4b5563;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.7;
+  }
+
+  /* ── 섹션 카드 ── */
+  .card {
+    background: #fff;
+    border-radius: 24px;
+    padding: 36px 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity .6s ease, transform .6s ease;
+  }
+  .card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+  .card-icon {
+    font-size: 40px;
+    width: 64px; height: 64px;
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    animation: spin-slow 6s linear infinite;
+  }
+  @keyframes spin-slow {
+    0%, 90%, 100% { transform: rotate(0deg); }
+    10%, 80%      { transform: rotate(-8deg); }
+    20%, 70%      { transform: rotate(8deg); }
+  }
+  .card-icon.blue   { background: #eff6ff; }
+  .card-icon.purple { background: #f5f3ff; }
+  .card-icon.green  { background: #ecfdf5; }
+  .card-icon.orange { background: #fffbeb; }
+  .card-icon.red    { background: #fef2f2; }
+  .card-icon.pink   { background: #fdf2f8; }
+
+  .card-header h2 {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #1e293b;
+  }
+  .card-header .badge {
+    font-size: .75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-left: 8px;
+  }
+  .badge.blue   { background: #dbeafe; color: #1d4ed8; }
+  .badge.green  { background: #d1fae5; color: #065f46; }
+  .badge.orange { background: #fef3c7; color: #92400e; }
+  .badge.purple { background: #ede9fe; color: #5b21b6; }
+
+  /* ── 비유 박스 ── */
+  .analogy {
+    background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+    border-left: 5px solid var(--blue);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    font-size: .95rem;
+    color: #374151;
+    line-height: 1.7;
+  }
+  .analogy strong { color: var(--blue); }
+
+  /* ── 단계 목록 ── */
+  .steps { list-style: none; counter-reset: step; }
+  .steps li {
+    counter-increment: step;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 14px 0;
+    border-bottom: 1px dashed #e5e7eb;
+    position: relative;
+  }
+  .steps li:last-child { border-bottom: none; }
+  .step-num {
+    min-width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    color: #fff;
+    font-weight: 900;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(59,130,246,.3);
+    transition: transform .2s;
+  }
+  .steps li:hover .step-num {
+    transform: scale(1.15) rotate(-5deg);
+  }
+  .step-body { flex: 1; }
+  .step-body strong {
+    display: block;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 4px;
+  }
+  .step-body p { font-size: .9rem; color: #64748b; line-height: 1.6; }
+  .step-body code {
+    display: inline-block;
+    background: #f1f5f9;
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-family: monospace;
+    font-size: .88rem;
+    color: #0f172a;
+    margin-top: 6px;
+  }
+
+  /* ── 코드 블록 ── */
+  .code-block {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 14px;
+    padding: 20px 22px;
+    font-family: 'Courier New', monospace;
+    font-size: .85rem;
+    line-height: 1.8;
+    overflow-x: auto;
+    position: relative;
+    margin-top: 12px;
+  }
+  .code-block .comment { color: #64748b; }
+  .code-block .key    { color: #7dd3fc; }
+  .code-block .val    { color: #86efac; }
+  .code-block .str    { color: #fda4af; }
+  .code-block .cmd    { color: #fbbf24; }
+  .copy-btn {
+    position: absolute;
+    top: 12px; right: 14px;
+    background: #1e293b;
+    color: #94a3b8;
+    border: none;
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: .78rem;
+    cursor: pointer;
+    transition: background .2s, color .2s;
+  }
+  .copy-btn:hover { background: var(--blue); color: #fff; }
+
+  /* ── 테이블 ── */
+  .nice-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: .9rem;
+  }
+  .nice-table th {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    color: #fff;
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+  }
+  .nice-table th:first-child { border-radius: 12px 0 0 0; }
+  .nice-table th:last-child  { border-radius: 0 12px 0 0; }
+  .nice-table td {
+    padding: 11px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+  }
+  .nice-table tr:nth-child(even) td { background: #f8fafc; }
+  .nice-table tr:hover td { background: #eff6ff; transition: background .2s; }
+
+  /* ── 파일 트리 ── */
+  .tree {
+    background: #f8fafc;
+    border-radius: 14px;
+    padding: 20px 24px;
+    font-family: monospace;
+    font-size: .88rem;
+    line-height: 2;
+    color: #334155;
+    margin-top: 12px;
+  }
+  .tree .folder { color: var(--blue); font-weight: 700; }
+  .tree .file   { color: #0f172a; }
+  .tree .desc   { color: #94a3b8; margin-left: 8px; font-size: .8rem; }
+
+  /* ── 경고/팁 박스 ── */
+  .tip {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-top: 14px;
+    font-size: .9rem;
+    line-height: 1.6;
+  }
+  .tip.warn  { background: #fffbeb; border-left: 4px solid var(--orange); color: #78350f; }
+  .tip.info  { background: #eff6ff; border-left: 4px solid var(--blue);   color: #1e3a8a; }
+  .tip.good  { background: #ecfdf5; border-left: 4px solid var(--green);  color: #064e3b; }
+  .tip.emoji { font-size: 1.4rem; flex-shrink: 0; }
+
+  /* ── 플랜 카드 ── */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .plan-card {
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: transform .25s, box-shadow .25s;
+    cursor: default;
+  }
+  .plan-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 32px rgba(0,0,0,.12);
+  }
+  .plan-card.free   { background: #f1f5f9; border: 2px solid #cbd5e1; }
+  .plan-card.pro    { background: linear-gradient(135deg, #dbeafe, #ede9fe); border: 2px solid var(--blue); }
+  .plan-card.team   { background: linear-gradient(135deg, #fce7f3, #ede9fe); border: 2px solid var(--purple); }
+  .plan-card .plan-price {
+    font-size: 2rem;
+    font-weight: 900;
+    color: #1e293b;
+    margin: 8px 0;
+  }
+  .plan-card .plan-name {
+    font-size: .85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #64748b;
+  }
+  .plan-card ul {
+    list-style: none;
+    text-align: left;
+    margin-top: 16px;
+    font-size: .88rem;
+    color: #374151;
+    line-height: 1.9;
+  }
+  .plan-card ul li::before { content: '✅ '; }
+
+  /* ── 보안 차단 목록 ── */
+  .block-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .block-item {
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-family: monospace;
+    font-size: .88rem;
+    color: #991b1b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    animation: shake-idle 4s ease-in-out infinite;
+  }
+  .block-item:nth-child(2) { animation-delay: .5s; }
+  .block-item:nth-child(3) { animation-delay: 1s; }
+  .block-item:nth-child(4) { animation-delay: 1.5s; }
+  @keyframes shake-idle {
+    0%, 90%, 100% { transform: rotate(0deg); }
+    92%           { transform: rotate(-3deg); }
+    94%           { transform: rotate(3deg); }
+    96%           { transform: rotate(-2deg); }
+    98%           { transform: rotate(2deg); }
+  }
+
+  /* ── 흐름 다이어그램 ── */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    justify-content: center;
+  }
+  .flow-box {
+    background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+    border: 2px solid #c7d2fe;
+    border-radius: 12px;
+    padding: 10px 16px;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #312e81;
+    text-align: center;
+    min-width: 90px;
+    transition: transform .2s;
+  }
+  .flow-box:hover { transform: scale(1.08); }
+  .flow-arrow {
+    font-size: 1.4rem;
+    color: #6366f1;
+    animation: arrow-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes arrow-pulse {
+    0%, 100% { transform: translateX(0); opacity: 1; }
+    50%       { transform: translateX(5px); opacity: .6; }
+  }
+
+  /* ── 진행 바 시뮬레이션 ── */
+  .progress-demo {
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 18px;
+    margin-top: 14px;
+    text-align: center;
+  }
+  .progress-label {
+    font-size: .88rem;
+    color: #475569;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .progress-bar-wrap {
+    background: #e2e8f0;
+    border-radius: 999px;
+    height: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--blue), var(--purple));
+    animation: fill-bar 3s ease-in-out infinite;
+  }
+  @keyframes fill-bar {
+    0%   { width: 0%; }
+    70%  { width: 90%; }
+    85%  { width: 95%; }
+    100% { width: 100%; }
+  }
+  .progress-steps {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    font-size: .78rem;
+    color: #94a3b8;
+  }
+
+  /* ── 성공 애니메이션 ── */
+  .success-anim {
+    text-align: center;
+    padding: 20px;
+    animation: pop-in .5s cubic-bezier(.17,.67,.39,1.3) both;
+  }
+  @keyframes pop-in {
+    from { opacity: 0; transform: scale(.7); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .checkmark {
+    font-size: 60px;
+    display: inline-block;
+    animation: bounce 1.5s ease-in-out infinite;
+  }
+
+  /* ── 공통 유틸 ── */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .hl-blue   { color: var(--blue);   font-weight: 700; }
+  .hl-purple { color: var(--purple); font-weight: 700; }
+  .hl-green  { color: var(--green);  font-weight: 700; }
+  .hl-orange { color: var(--orange); font-weight: 700; }
+  .hl-red    { color: var(--red);    font-weight: 700; }
+  .hl-pink   { color: var(--pink);   font-weight: 700; }
+
+  /* ── 목차 ── */
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    text-decoration: none;
+    font-size: .88rem;
+    font-weight: 700;
+    color: #334155;
+    transition: all .2s;
+  }
+  .toc a:hover {
+    border-color: var(--blue);
+    background: #eff6ff;
+    color: var(--blue);
+    transform: translateX(4px);
+  }
+
+  /* ── 반응형 ── */
+  @media (max-width: 600px) {
+    .card { padding: 24px 18px; }
+    .plan-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ★ 별 배경 -->
+<div class="stars" id="stars"></div>
+
+<div class="wrapper">
+
+  <!-- ══════════════════════════════
+       🎯 히어로
+  ══════════════════════════════ -->
+  <div class="hero">
+    <div class="emoji-big">📄</div>
+    <h1>WebSnap PDF<br>쉽게 배우는 가이드</h1>
+    <p>웹페이지 주소(URL)를 입력하면<br>
+       자동으로 <strong>PDF 파일</strong>로 만들어 주는 마법 도구예요! ✨</p>
+  </div>
+
+  <!-- ══════════════════════════════
+       📋 목차
+  ══════════════════════════════ -->
+  <div class="card" id="toc-card">
+    <div class="card-header">
+      <div class="card-icon blue">🗺️</div>
+      <h2>목차 — 무엇을 배울까요?</h2>
+    </div>
+    <div class="toc">
+      <a href="#what">🤔 WebSnap PDF가 뭐예요?</a>
+      <a href="#files">📁 파일 구조 살펴보기</a>
+      <a href="#how">🖱️ 기본 사용법</a>
+      <a href="#batch">📦 여러 개 한꺼번에</a>
+      <a href="#api">⚙️ 개발자 API</a>
+      <a href="#security">🔒 위험한 주소 차단</a>
+      <a href="#plans">💳 요금 플랜</a>
+      <a href="#dev">🛠️ 개발 환경 설정</a>
+      <a href="#arch">🏗️ 어떻게 동작하나요?</a>
+      <a href="#tips">💡 알아두면 좋은 팁</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       🤔 1. WebSnap PDF가 뭐예요?
+  ══════════════════════════════ -->
+  <div class="card" id="what">
+    <div class="card-header">
+      <div class="card-icon blue">🤔</div>
+      <h2>WebSnap PDF가 뭐예요?</h2>
+    </div>
+
+    <div class="analogy">
+      📚 <strong>비유로 이해해요!</strong><br>
+      인터넷에서 재미있는 기사를 발견했는데, 인터넷이 없을 때도 보고 싶다면 어떻게 할까요?<br>
+      WebSnap PDF는 마치 <strong>인터넷 프린터</strong>처럼, 웹페이지를 그대로 종이(PDF)에 찍어 보관해 줘요!<br>
+      광고나 쓸데없는 버튼은 쏙 빼고, <strong>내용만 깔끔하게</strong> 담아줘요. 😊
+    </div>
+
+    <table class="nice-table">
+      <thead>
+        <tr>
+          <th>사용자</th>
+          <th>어디에 쓰나요?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>📰 직장인</td><td>뉴스·기사를 오프라인 보고용으로 저장</td></tr>
+        <tr><td>🎓 학생·연구자</td><td>참고 자료·논문을 PDF로 보관</td></tr>
+        <tr><td>💻 개발자</td><td>기술 문서를 로컬에 저장</td></tr>
+        <tr><td>🍳 일반 사용자</td><td>레시피·여행 정보 등 즐겨찾기 대신 PDF 보관</td></tr>
+      </tbody>
+    </table>
+
+    <div class="tip good">
+      <span class="tip emoji">🎯</span>
+      <div><strong>목표:</strong> URL 입력 후 <strong>10초 이내</strong>에 PDF 생성!
+      한글과 영어 폰트가 모두 예쁘게 나와요.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       📁 2. 파일 구조 살펴보기
+  ══════════════════════════════ -->
+  <div class="card" id="files">
+    <div class="card-header">
+      <div class="card-icon purple">📁</div>
+      <h2>파일 구조 살펴보기</h2>
+    </div>
+
+    <div class="analogy">
+      🏠 <strong>비유로 이해해요!</strong><br>
+      파일 구조는 마치 <strong>집 구조</strong>와 같아요.<br>
+      <code>app/</code> 폴더는 거실(사용자가 보는 화면),
+      <code>lib/</code> 폴더는 주방(요리하는 곳 = 핵심 로직),
+      <code>prisma/</code>는 냉장고(데이터 보관)예요!
+    </div>
+
+    <div class="tree">
+      <span class="folder">websnap-pdf/</span><br>
+      ├── <span class="folder">app/</span>  <span class="desc">← 화면과 API가 모여 있는 곳</span><br>
+      │   ├── <span class="folder">api/</span><br>
+      │   │   ├── <span class="file">convert/route.ts</span>     <span class="desc">← URL 1개 → PDF 변환</span><br>
+      │   │   ├── <span class="file">batch/route.ts</span>       <span class="desc">← URL 여러 개 → ZIP 변환</span><br>
+      │   │   ├── <span class="file">v1/convert/route.ts</span>  <span class="desc">← 외부 개발자용 REST API</span><br>
+      │   │   ├── <span class="file">preview/route.ts</span>     <span class="desc">← 변환 전 미리보기 사진</span><br>
+      │   │   ├── <span class="file">history/route.ts</span>     <span class="desc">← 변환 기록 불러오기</span><br>
+      │   │   ├── <span class="file">stripe/route.ts</span>      <span class="desc">← 결제 처리</span><br>
+      │   │   └── <span class="file">auth/route.ts</span>        <span class="desc">← 로그인 처리</span><br>
+      │   ├── <span class="folder">batch/page.tsx</span>         <span class="desc">← 일괄 변환 화면</span><br>
+      │   ├── <span class="folder">dashboard/</span>             <span class="desc">← 대시보드 화면</span><br>
+      │   └── <span class="file">page.tsx</span>               <span class="desc">← 메인(홈) 화면</span><br>
+      ├── <span class="folder">lib/</span>  <span class="desc">← 핵심 기능 모음 (엔진실)</span><br>
+      │   ├── <span class="file">pdf-converter.ts</span>        <span class="desc">⭐ PDF 만드는 핵심 코드</span><br>
+      │   ├── <span class="file">storage.ts</span>              <span class="desc">← 파일 저장 (Supabase)</span><br>
+      │   ├── <span class="file">prisma.ts</span>               <span class="desc">← 데이터베이스 연결</span><br>
+      │   ├── <span class="file">rate-limit.ts</span>           <span class="desc">← 과도한 사용 제한</span><br>
+      │   ├── <span class="file">api-key.ts</span>              <span class="desc">← API 키 암호화</span><br>
+      │   └── <span class="file">url-validator.ts</span>        <span class="desc">← 위험한 주소 차단</span><br>
+      ├── <span class="folder">prisma/</span><br>
+      │   └── <span class="file">schema.prisma</span>           <span class="desc">← 데이터베이스 설계도</span><br>
+      ├── <span class="file">auth.ts</span>                     <span class="desc">← Google 로그인 설정</span><br>
+      └── <span class="file">package.json</span>               <span class="desc">← 사용하는 도구 목록</span>
+    </div>
+
+    <div class="tip info">
+      <span class="tip emoji">💡</span>
+      <div><strong>가장 중요한 파일:</strong> <code>lib/pdf-converter.ts</code> — 이 파일이 실제로 PDF를 만드는 "심장" 역할을 해요!</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       🖱️ 3. 기본 사용법 (단일 변환)
+  ══════════════════════════════ -->
+  <div class="card" id="how">
+    <div class="card-header">
+      <div class="card-icon green">🖱️</div>
+      <h2>기본 사용법 <span class="badge green">단일 변환</span></h2>
+    </div>
+
+    <div class="analogy">
+      🍕 <strong>피자 주문처럼 쉬워요!</strong><br>
+      피자를 주문할 때 "어떤 피자, 몇 판"을 고르듯이,<br>
+      WebSnap PDF도 "어떤 URL, 어떤 옵션"을 고르면 끝이에요!
+    </div>
+
+    <ol class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>🌐 서비스 주소로 접속</strong>
+          <p>브라우저(크롬, 사파리 등)를 열고 WebSnap PDF 주소로 들어가요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>📋 URL 붙여넣기</strong>
+          <p>저장하고 싶은 웹페이지 주소를 복사해서 입력창에 붙여넣어요.</p>
+          <code>https://example.com/interesting-article</code>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>⚙️ 옵션 선택 (선택 사항)</strong>
+          <p>PDF 모양을 바꾸고 싶다면 아래 옵션을 골라요.</p>
+          <table class="nice-table" style="margin-top:10px">
+            <thead><tr><th>옵션</th><th>선택지</th><th>설명</th></tr></thead>
+            <tbody>
+              <tr><td>📄 용지 크기</td><td>A4 / Letter</td><td>A4는 한국·유럽, Letter는 미국 기준</td></tr>
+              <tr><td>📐 방향</td><td>세로 / 가로</td><td>세로(portrait)가 일반적</td></tr>
+              <tr><td>⬜ 여백</td><td>없음 / 작게 / 보통 / 크게</td><td>테두리 빈 공간의 크기</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>🚀 [변환하기] 버튼 클릭!</strong>
+          <p>버튼을 누르면 서버가 웹페이지를 가져와서 PDF를 만들기 시작해요.</p>
+          <div class="progress-demo">
+            <div class="progress-label">🔄 변환 중이에요... (최대 30초)</div>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill"></div>
+            </div>
+            <div class="progress-steps">
+              <span>📡 페이지 열기</span>
+              <span>✂️ 광고 제거</span>
+              <span>📄 PDF 생성</span>
+              <span>✅ 완료!</span>
+            </div>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>👀 미리보기 확인</strong>
+          <p>변환하기 전에 웹페이지가 어떻게 생겼는지 사진으로 미리 볼 수 있어요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <strong>⬇️ PDF 다운로드!</strong>
+          <p>[PDF 다운로드] 버튼을 누르면 내 컴퓨터에 PDF가 저장돼요.</p>
+          <div class="success-anim">
+            <div class="checkmark">🎉</div>
+            <p style="color:#10b981;font-weight:700;margin-top:8px">PDF 저장 완료!</p>
+          </div>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════
+       📦 4. 일괄 변환 (Batch)
+  ══════════════════════════════ -->
+  <div class="card" id="batch">
+    <div class="card-header">
+      <div class="card-icon orange">📦</div>
+      <h2>여러 개 한꺼번에 <span class="badge orange">일괄 변환</span></h2>
+    </div>
+
+    <div class="analogy">
+      🛒 <strong>장보기처럼 생각해요!</strong><br>
+      마트에서 물건을 하나씩 따로 계산하는 것보다 <strong>한 번에 담아서 계산</strong>하는 게 편하죠?<br>
+      일괄 변환은 URL을 여러 개 넣으면 한꺼번에 PDF로 만들어서 <strong>ZIP 파일 하나</strong>로 묶어줘요!
+    </div>
+
+    <ol class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>🔑 Google 로그인 (필수!)</strong>
+          <p>일괄 변환은 로그인한 사용자만 쓸 수 있어요. Google 계정으로 로그인하세요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>📍 /batch 페이지로 이동</strong>
+          <p>메인 화면에서 "일괄 변환" 메뉴를 클릭하거나 주소창에 <code>/batch</code>를 입력해요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>📝 URL 목록 입력</strong>
+          <p>변환할 주소들을 <strong>줄바꿈(Enter)</strong> 또는 <strong>쉼표(,)</strong>로 구분해서 입력해요.</p>
+          <div class="code-block">
+<span class="comment"># 이렇게 한 줄씩 입력해요:</span><br>
+<span class="str">https://example.com/article1</span><br>
+<span class="str">https://news.site.com/story</span><br>
+<span class="str">https://blog.example.org/post-123</span>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>🔢 개수 확인 (한도 주의!)</strong>
+          <p>입력창 위에 <code>현재개수 / 최대개수</code>가 표시돼요.</p>
+          <table class="nice-table" style="margin-top:10px">
+            <thead><tr><th>플랜</th><th>최대 URL 수</th></tr></thead>
+            <tbody>
+              <tr><td>🆓 무료(Free)</td><td>5개</td></tr>
+              <tr><td>⭐ 프로(Pro)</td><td>30개</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <strong>🚀 [ZIP으로 일괄 변환] 클릭</strong>
+          <p>최대 60초가 걸릴 수 있어요. 3개씩 동시에 변환해요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <strong>⬇️ ZIP 파일 다운로드</strong>
+          <p>완료되면 <code>websnap-batch-{날짜}.zip</code> 파일이 생성돼요.<br>
+          압축을 풀면 각 URL별 PDF 파일이 들어있어요!</p>
+          <div class="tip good" style="margin-top:10px">
+            <span class="tip emoji">📂</span>
+            <div>ZIP 안에는 <code>페이지제목.pdf</code> 파일들이 있어요.<br>
+            같은 제목이 있으면 자동으로 <code>제목-1.pdf</code>, <code>제목-2.pdf</code>처럼 번호를 붙여줘요.</div>
+          </div>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════
+       ⚙️ 5. 개발자 API
+  ══════════════════════════════ -->
+  <div class="card" id="api">
+    <div class="card-header">
+      <div class="card-icon purple">⚙️</div>
+      <h2>개발자 REST API <span class="badge purple">고급 기능</span></h2>
+    </div>
+
+    <div class="analogy">
+      🤖 <strong>로봇 비서에게 시키는 것처럼요!</strong><br>
+      일반 사용자는 화면을 클릭하지만, 개발자는 코드로 직접 명령을 내릴 수 있어요.<br>
+      API는 마치 <strong>비밀 문(API Key)</strong>을 열고 들어가 명령을 내리는 것과 같아요!
+    </div>
+
+    <ol class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>🔑 API Key 발급</strong>
+          <p>대시보드 → API Key 섹션에서 키를 발급받아요. 절대 남에게 알려주면 안 돼요!</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>📤 변환 요청 보내기</strong>
+          <p>아래 명령어를 터미널에서 실행하면 PDF가 바로 저장돼요.</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">복사</button>
+<span class="cmd">curl</span> <span class="key">-X POST</span> https://your-domain.com/api/v1/convert \<br>
+  <span class="key">-H</span> <span class="str">"Authorization: Bearer 여기에_API_KEY_입력"</span> \<br>
+  <span class="key">-H</span> <span class="str">"Content-Type: application/json"</span> \<br>
+  <span class="key">-d</span> <span class="str">'{</span><br>
+       <span class="str">"url": "https://example.com/article",</span><br>
+       <span class="str">"options": {</span><br>
+         <span class="str">"format": "A4",</span><br>
+         <span class="str">"orientation": "portrait",</span><br>
+         <span class="str">"margin": "normal"</span><br>
+       <span class="str">}</span><br>
+     <span class="str">}'</span> \<br>
+  <span class="key">--output</span> article.pdf
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>📩 응답 받기</strong>
+          <p>성공하면 PDF 파일을 바이너리(0과 1 데이터)로 받아요.</p>
+          <table class="nice-table" style="margin-top:10px">
+            <thead><tr><th>상황</th><th>응답</th></tr></thead>
+            <tbody>
+              <tr><td>✅ 성공</td><td>PDF 파일 바이너리 데이터 (Content-Type: application/pdf)</td></tr>
+              <tr><td>❌ 인증 실패</td><td><code>{ "error": "유효하지 않은 API 키입니다." }</code></td></tr>
+              <tr><td>⚠️ 한도 초과</td><td><code>{ "error": "일일 변환 한도를 초과했습니다." }</code></td></tr>
+              <tr><td>🚫 잘못된 URL</td><td><code>{ "error": "url 필드가 필요합니다." }</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </li>
+    </ol>
+
+    <div class="tip warn">
+      <span class="tip emoji">⚠️</span>
+      <div><strong>일일 한도:</strong> 무료 플랜은 하루 5회, Pro는 100회까지 API를 쓸 수 있어요.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       🔒 6. 보안 차단
+  ══════════════════════════════ -->
+  <div class="card" id="security">
+    <div class="card-header">
+      <div class="card-icon red">🔒</div>
+      <h2>위험한 주소는 자동 차단!</h2>
+    </div>
+
+    <div class="analogy">
+      🏥 <strong>백신처럼 나쁜 것을 막아요!</strong><br>
+      나쁜 사람이 WebSnap PDF를 이용해서 서버 내부 정보를 훔치려 할 수 있어요.<br>
+      이를 <strong>SSRF 공격</strong>이라 부르는데, WebSnap PDF는 이런 주소들을 자동으로 막아요!
+    </div>
+
+    <p style="color:#374151;font-size:.95rem;margin-bottom:12px;line-height:1.7">아래 주소들은 입력해도 변환이 <strong style="color:var(--red)">거부</strong>돼요:</p>
+
+    <div class="block-list">
+      <div class="block-item">🚫 file://</div>
+      <div class="block-item">🚫 localhost</div>
+      <div class="block-item">🚫 127.0.0.1</div>
+      <div class="block-item">🚫 192.168.x.x</div>
+    </div>
+
+    <div class="tip warn" style="margin-top:18px">
+      <span class="tip emoji">🛡️</span>
+      <div>
+        <strong>왜 막나요?</strong><br>
+        • <code>file://</code> — 내 컴퓨터 파일을 몰래 열 수 있어요<br>
+        • <code>localhost / 127.x.x.x</code> — 서버 자기 자신을 공격할 수 있어요<br>
+        • <code>192.168.x.x</code> — 회사 내부 네트워크에 침입할 수 있어요
+      </div>
+    </div>
+
+    <div class="tip info" style="margin-top:10px">
+      <span class="tip emoji">⚡</span>
+      <div>추가 보안: IP당 <strong>분당 5회</strong> 변환 제한이 있어요. 너무 빠르게 많이 요청하면 잠시 차단돼요.</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       💳 7. 요금 플랜
+  ══════════════════════════════ -->
+  <div class="card" id="plans">
+    <div class="card-header">
+      <div class="card-icon pink">💳</div>
+      <h2>요금 플랜 비교</h2>
+    </div>
+
+    <div class="plan-grid">
+      <div class="plan-card free">
+        <div class="plan-name">🆓 Free</div>
+        <div class="plan-price">$0</div>
+        <div style="color:#64748b;font-size:.8rem">무료!</div>
+        <ul>
+          <li>1일 5회 변환</li>
+          <li>일괄 변환 5 URL</li>
+          <li>변환 기록 7일 보관</li>
+          <li>API 하루 5회</li>
+        </ul>
+      </div>
+
+      <div class="plan-card pro">
+        <div class="plan-name">⭐ Pro</div>
+        <div class="plan-price">$9<span style="font-size:1rem;font-weight:400">/월</span></div>
+        <div style="color:#1d4ed8;font-size:.8rem">개인 파워유저</div>
+        <ul>
+          <li>무제한 변환</li>
+          <li>일괄 변환 30 URL</li>
+          <li>변환 기록 1년 보관</li>
+          <li>API 하루 100회</li>
+        </ul>
+      </div>
+
+      <div class="plan-card team">
+        <div class="plan-name">🏢 Team</div>
+        <div class="plan-price">$29<span style="font-size:1rem;font-weight:400">/월</span></div>
+        <div style="color:#5b21b6;font-size:.8rem">팀(5인)</div>
+        <ul>
+          <li>무제한 변환</li>
+          <li>일괄 변환 30 URL</li>
+          <li>변환 기록 1년 보관</li>
+          <li>API 무제한</li>
+          <li>5명 동시 사용</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       🛠️ 8. 개발 환경 설정
+  ══════════════════════════════ -->
+  <div class="card" id="dev">
+    <div class="card-header">
+      <div class="card-icon blue">🛠️</div>
+      <h2>개발 환경 설정 <span class="badge blue">개발자용</span></h2>
+    </div>
+
+    <div class="analogy">
+      🧪 <strong>과학 실험실 준비하기!</strong><br>
+      직접 이 서비스를 내 컴퓨터에서 실행하고 싶다면, 먼저 "재료"를 준비해야 해요.<br>
+      아래 순서대로 따라 하면 내 컴퓨터에서도 WebSnap PDF를 돌릴 수 있어요!
+    </div>
+
+    <ol class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>📦 필요한 도구 설치 (의존성)</strong>
+          <p>프로젝트 폴더로 들어가서 아래 명령어를 실행해요.</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">복사</button>
+<span class="cmd">cd</span> websnap-pdf<br>
+<span class="cmd">npm install</span>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>🔐 환경 변수 설정 (<code>.env.local</code> 파일 만들기)</strong>
+          <p>프로젝트 폴더에 <code>.env.local</code> 파일을 만들고 아래 내용을 채워요.</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">복사</button>
+<span class="comment"># 데이터베이스 (Supabase PostgreSQL)</span><br>
+<span class="key">DATABASE_URL</span>=<span class="str">postgresql://user:password@host/dbname</span><br><br>
+<span class="comment"># 로그인 보안 키 (아무 랜덤 문자열)</span><br>
+<span class="key">NEXTAUTH_SECRET</span>=<span class="str">랜덤한_긴_문자열_여기에</span><br><br>
+<span class="comment"># Google 로그인 (Google Cloud Console에서 발급)</span><br>
+<span class="key">GOOGLE_CLIENT_ID</span>=<span class="str">xxx.apps.googleusercontent.com</span><br>
+<span class="key">GOOGLE_CLIENT_SECRET</span>=<span class="str">GOCSPX-xxx</span><br><br>
+<span class="comment"># Supabase 파일 저장소</span><br>
+<span class="key">NEXT_PUBLIC_SUPABASE_URL</span>=<span class="str">https://xxx.supabase.co</span><br>
+<span class="key">SUPABASE_SERVICE_ROLE_KEY</span>=<span class="str">eyJxxx...</span><br><br>
+<span class="comment"># 결제 (Stripe)</span><br>
+<span class="key">STRIPE_SECRET_KEY</span>=<span class="str">sk_test_xxx</span><br>
+<span class="key">STRIPE_WEBHOOK_SECRET</span>=<span class="str">whsec_xxx</span>
+          </div>
+          <div class="tip warn" style="margin-top:10px">
+            <span class="tip emoji">⚠️</span>
+            <div><strong>.env.local 파일은 절대 GitHub에 올리면 안 돼요!</strong> 비밀번호가 들어있거든요.</div>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>🗃️ 데이터베이스 준비 (마이그레이션)</strong>
+          <p>데이터베이스에 필요한 테이블들을 자동으로 만들어요.</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">복사</button>
+<span class="cmd">npx prisma migrate dev</span>
+          </div>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>🚀 개발 서버 실행!</strong>
+          <p>아래 명령어를 실행하면 내 컴퓨터에서 서비스가 시작돼요.</p>
+          <div class="code-block">
+            <button class="copy-btn" onclick="copyCode(this)">복사</button>
+<span class="cmd">npm run dev</span>
+          </div>
+          <p style="margin-top:10px;font-size:.88rem;color:#64748b">
+            실행 후 브라우저에서 <code>http://localhost:3000</code>으로 접속하면 돼요! 🎉
+          </p>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════
+       🏗️ 9. 동작 원리
+  ══════════════════════════════ -->
+  <div class="card" id="arch">
+    <div class="card-header">
+      <div class="card-icon green">🏗️</div>
+      <h2>어떻게 동작하나요?</h2>
+    </div>
+
+    <div class="analogy">
+      🏭 <strong>공장 라인처럼 생각해요!</strong><br>
+      URL이 들어오면 여러 단계를 거쳐 PDF가 만들어져요. 마치 자동차 공장 조립 라인 같아요!
+    </div>
+
+    <p style="text-align:center;font-size:.88rem;color:#64748b;margin-bottom:12px">URL 하나가 PDF가 되기까지의 여정 🚀</p>
+
+    <div class="flow">
+      <div class="flow-box">🌐<br>사용자가<br>URL 입력</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">🔍<br>URL<br>유효성 검사</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">🤖<br>Puppeteer가<br>페이지 열기</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">✂️<br>Readability로<br>광고 제거</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">📄<br>PDF<br>렌더링</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">⬇️<br>사용자에게<br>전달</div>
+    </div>
+
+    <table class="nice-table" style="margin-top:20px">
+      <thead><tr><th>단계</th><th>사용 기술</th><th>하는 일</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>1️⃣ 페이지 열기</td>
+          <td><code>Puppeteer</code></td>
+          <td>실제 크롬 브라우저처럼 웹페이지를 열어요</td>
+        </tr>
+        <tr>
+          <td>2️⃣ 본문 추출</td>
+          <td><code>Readability.js</code></td>
+          <td>광고, 메뉴, 팝업을 제거하고 핵심 내용만 남겨요</td>
+        </tr>
+        <tr>
+          <td>3️⃣ HTML 재구성</td>
+          <td>내부 함수</td>
+          <td>깔끔한 디자인 템플릿으로 내용을 꾸며요</td>
+        </tr>
+        <tr>
+          <td>4️⃣ PDF 생성</td>
+          <td><code>page.pdf()</code></td>
+          <td>A4/Letter 규격에 맞게 PDF를 렌더링해요</td>
+        </tr>
+        <tr>
+          <td>5️⃣ 파일 저장</td>
+          <td><code>Supabase Storage</code></td>
+          <td>클라우드에 PDF를 보관해요 (만료일 설정 가능)</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tip info" style="margin-top:14px">
+      <span class="tip emoji">🧠</span>
+      <div>
+        <strong>Puppeteer란?</strong> 실제 크롬 브라우저를 코드로 조종하는 도구예요.<br>
+        JavaScript로 만들어진 복잡한 웹페이지도 완벽하게 렌더링할 수 있어요!
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════
+       💡 10. 알아두면 좋은 팁
+  ══════════════════════════════ -->
+  <div class="card" id="tips">
+    <div class="card-header">
+      <div class="card-icon orange">💡</div>
+      <h2>알아두면 좋은 팁!</h2>
+    </div>
+
+    <ol class="steps">
+      <li>
+        <div class="step-num">💡</div>
+        <div class="step-body">
+          <strong>로그인 필요한 사이트는 안 돼요</strong>
+          <p>회원만 볼 수 있는 유료 기사나 로그인이 필요한 페이지는 변환이 안 될 수 있어요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">⏱️</div>
+        <div class="step-body">
+          <strong>느린 사이트는 타임아웃 될 수 있어요</strong>
+          <p>웹페이지가 30초 안에 로드되지 않으면 변환이 실패해요. 나중에 다시 시도해보세요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">📏</div>
+        <div class="step-body">
+          <strong>파일 이름은 자동으로 만들어져요</strong>
+          <p>특수문자는 제거되고, 60자까지만 사용돼요. 한글 제목도 잘 지원해요!</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">🔄</div>
+        <div class="step-body">
+          <strong>같은 URL을 또 변환해도 돼요</strong>
+          <p>히스토리에서 과거 변환 결과를 다시 다운로드할 수 있어요 (보관 기간 내에서).</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">🌏</div>
+        <div class="step-body">
+          <strong>한글·영어 폰트 모두 지원!</strong>
+          <p>시스템 폰트(애플, 구글 폰트 등)가 자동 사용되어 한글도 깨지지 않아요.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">📊</div>
+        <div class="step-body">
+          <strong>KPI (중요 목표 수치)</strong>
+          <table class="nice-table" style="margin-top:10px">
+            <thead><tr><th>지표</th><th>목표</th></tr></thead>
+            <tbody>
+              <tr><td>변환 성공률</td><td>95% 이상</td></tr>
+              <tr><td>평균 변환 시간</td><td>8초 이하</td></tr>
+              <tr><td>월간 활성 사용자</td><td>Phase 1 목표 500명</td></tr>
+              <tr><td>Pro 업그레이드율</td><td>5% 이상</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════
+       🎉 마무리
+  ══════════════════════════════ -->
+  <div class="card" style="text-align:center;background:linear-gradient(135deg,#eff6ff,#f5f3ff,#fce7f3)">
+    <div style="font-size:60px;animation:bounce 1.5s ease-in-out infinite">🎊</div>
+    <h2 style="font-size:1.8rem;font-weight:900;background:linear-gradient(90deg,var(--blue),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:16px 0 8px">
+      이제 다 배웠어요!
+    </h2>
+    <p style="color:#475569;line-height:1.8;max-width:480px;margin:0 auto">
+      WebSnap PDF는 URL만 있으면 어떤 웹페이지든 깔끔한 PDF로 만들어주는 멋진 도구예요.<br><br>
+      <strong class="hl-blue">단일 변환</strong>으로 한 페이지씩,<br>
+      <strong class="hl-orange">일괄 변환</strong>으로 여러 페이지를 한꺼번에,<br>
+      <strong class="hl-purple">REST API</strong>로 나만의 앱과 연동까지!<br><br>
+      모르는 게 생기면 이 가이드를 다시 펴 보세요 📖
+    </p>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+// ── 별 생성
+const starsEl = document.getElementById('stars');
+for (let i = 0; i < 60; i++) {
+  const s = document.createElement('div');
+  s.className = 'star';
+  const size = Math.random() * 3 + 1;
+  s.style.cssText = [
+    `width:${size}px`, `height:${size}px`,
+    `top:${Math.random()*100}%`, `left:${Math.random()*100}%`,
+    `--d:${(Math.random()*3+2).toFixed(1)}s`,
+    `--delay:-${(Math.random()*5).toFixed(1)}s`
+  ].join(';');
+  starsEl.appendChild(s);
+}
+
+// ── 스크롤 애니메이션 (Intersection Observer)
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.card').forEach(c => observer.observe(c));
+
+// ── 복사 버튼
+function copyCode(btn) {
+  const block = btn.closest('.code-block');
+  const text = block.innerText.replace('복사\n', '').replace('복사됨!\n', '');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '복사됨!';
+    btn.style.background = '#10b981';
+    btn.style.color = '#fff';
+    setTimeout(() => {
+      btn.textContent = '복사';
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 1800);
+  });
+}
+
+// ── 부드러운 앵커 스크롤
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(a.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
