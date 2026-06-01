@@ -1,0 +1,2622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="교회재정">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#1e3c72">
+    <meta name="description" content="영덕제일교회 재정출납부 - 교회 재정 관리 앱">
+    <title>영덕제일교회 재정출납부</title>
+    
+    <!-- PWA 매니페스트 (인라인) -->
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIuyYgeuNleygnOydvOq1kO2ajCDsnqzsoJXstpzrgqnrtoDisSIsCiAgInNob3J0X25hbWUiOiAi6rWQ7ZqM7J6s7KCVIiwKICAiZGVzY3JpcHRpb24iOiAi6rWQ7ZqMIOyerOyglSDqtIDrpqwg7JWxIiwKICAic3RhcnRfdXJsIjogIi4iLAogICJkaXNwbGF5IjogInN0YW5kYWxvbmUiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiMxZTNjNzIiLAogICJ0aGVtZV9jb2xvciI6ICIjMWUzYzcyIiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LFBITjJaeUIyYVdWM1FtOTRQU0l3SURBZ01UQXdJREV3TUNJZ2VHMXNibk05SW1oMGRIQTZMeTkzZDNjdWR6TXViM0puTHpJd01EQXZjM1puSWo0OGNtVmpkQ0IzYVdSMGFEMGlNVEF3SWlCb1pXbG5hSFE5SWpFd01DSWdabWxzYkQwaUl6RmxNMk0zTWlJdlBqeDBaWGgwSUhnOUlqVXdJaUI1UFNJMk5TSWdabTl1ZEMxemFYcGxQU0kwTUNJZ1ptbHNiRDBpZDJocGRHVWlJSFJsZUhRdFlXNWphRzl5UFNKdGFXUmtiR1VpUGNPajwvdGV4dD48L3N2Zz4iLAogICAgICAic2l6ZXMiOiAiMTkyeDE5MiIsCiAgICAgICJ0eXBlIjogImltYWdlL3N2Zyt4bWwiCiAgICB9CiAgXQp9">
+    
+    <!-- 앱 아이콘 (Apple) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzFlM2M3MiIvPjx0ZXh0IHg9IjUwIiB5PSI2NSIgZm9udC1zaXplPSI0MCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuKCqTwvdGV4dD48L3N2Zz4=">
+    
+    <!-- SheetJS 라이브러리 (엑셀 저장용) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            padding-top: env(safe-area-inset-top, 10px);
+            padding-bottom: env(safe-area-inset-bottom, 10px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        /* PWA 설치 배너 */
+        .install-banner {
+            display: none;
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+            padding: 12px 15px;
+            text-align: center;
+            font-size: 0.9em;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .install-banner.show {
+            display: flex;
+        }
+        
+        .install-banner button {
+            background: white;
+            color: #28a745;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .install-banner .close-install {
+            background: transparent;
+            color: white;
+            font-size: 1.2em;
+            padding: 0 10px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.6em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-content {
+            padding: 15px;
+        }
+
+        /* 입력 폼 영역 */
+        .input-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .input-section h2 {
+            color: #1e3c72;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 70px 70px 1fr 1fr 1fr 120px 120px 120px;
+            gap: 8px;
+            margin-bottom: 10px;
+            align-items: end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 4px;
+            font-size: 0.85em;
+        }
+
+        .input-group input, .input-group select {
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .input-group select {
+            background: white;
+        }
+
+        /* 수입/지출 과목 색상 구분 */
+        .income-select {
+            border-color: #28a745 !important;
+            background-color: #f8fff8 !important;
+        }
+
+        .expense-select {
+            border-color: #dc3545 !important;
+            background-color: #fff8f8 !important;
+        }
+
+        /* 버튼 그룹 - 컴팩트하게 */
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #138496);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffc107, #e0a800);
+            color: #212529;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d, #5a6268);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        }
+
+        /* 음성 입력 버튼 */
+        .voice-input-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .voice-input-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(238, 90, 90, 0.4);
+        }
+
+        .voice-input-btn.recording {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .voice-status {
+            padding: 8px 12px;
+            background: #fff3cd;
+            border-radius: 5px;
+            color: #856404;
+            font-size: 0.85em;
+            display: none;
+        }
+
+        .voice-status.active {
+            display: inline-block;
+        }
+
+        /* 필드별 음성 입력 */
+        .input-with-voice {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            width: 100%;
+        }
+
+        .input-with-voice input {
+            flex: 1;
+            min-width: 50px;
+            padding: 8px 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 0.9em;
+        }
+
+        .input-with-voice input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+        }
+
+        .day-input {
+            width: 60px !important;
+            flex: none !important;
+            text-align: center;
+        }
+
+        .amount-input {
+            text-align: right;
+        }
+
+        .voice-mini-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .voice-mini-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(238, 90, 90, 0.4);
+        }
+
+        .voice-mini-btn.recording {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            animation: pulse 1s infinite;
+        }
+
+        .voice-field-status {
+            background: #d4edda;
+            color: #155724;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: none;
+            font-size: 0.9em;
+        }
+
+        .voice-field-status.active {
+            display: block;
+        }
+
+        /* 이월금 입력 */
+        .carryover-section {
+            background: #e7f5ff;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+        }
+
+        .carryover-section label {
+            font-weight: bold;
+            color: #1e3c72;
+        }
+
+        .carryover-section input {
+            padding: 6px 10px;
+            border: 1px solid #74c0fc;
+            border-radius: 5px;
+            font-size: 0.9em;
+            width: 150px;
+        }
+
+        /* 테이블 영역 */
+        .table-section {
+            overflow-x: auto;
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+        }
+
+        th {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 10px 6px;
+            text-align: center;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 8px 6px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        tr:hover {
+            background: #f1f3f5;
+        }
+
+        tr.monthly-total {
+            background: #fff3cd;
+            font-weight: bold;
+        }
+
+        tr.cumulative-total {
+            background: #d4edda;
+            font-weight: bold;
+        }
+
+        .amount-income {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .amount-expense {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .amount-balance {
+            color: #1e3c72;
+            font-weight: bold;
+        }
+
+        /* 삭제 버튼 */
+        .delete-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        /* 수정 버튼 */
+        .edit-btn {
+            background: #17a2b8;
+            color: white;
+            border: none;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-right: 4px;
+        }
+
+        .edit-btn:hover {
+            background: #138496;
+        }
+
+        /* 집계 모달 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .modal-header h3 {
+            color: #1e3c72;
+            font-size: 1.1em;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.3em;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        /* 집계 테이블 */
+        .summary-table {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .summary-table th {
+            background: #495057;
+            padding: 8px;
+        }
+
+        /* 월 선택 */
+        .month-selector {
+            margin-bottom: 15px;
+        }
+
+        .month-selector select {
+            padding: 8px 15px;
+            font-size: 0.9em;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+
+        /* 인쇄 버튼 영역 */
+        .print-button-area {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .print-btn {
+            padding: 12px 40px;
+            font-size: 1.1em;
+        }
+
+        /* 저장 상태 표시 */
+        .save-status {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            display: none;
+            font-size: 0.9em;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 구분선 */
+        .divider {
+            border-left: 2px solid #dee2e6;
+            height: 25px;
+            margin: 0 5px;
+        }
+
+        /* 인쇄 스타일 */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .input-section, .button-row, .voice-input-btn, .delete-btn, .carryover-section {
+                display: none !important;
+            }
+
+            .table-section {
+                max-height: none;
+                overflow: visible;
+            }
+
+            .header {
+                background: #1e3c72 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            th {
+                background: #1e3c72 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            tr.monthly-total {
+                background: #fff3cd !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            tr.cumulative-total {
+                background: #d4edda !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        /* 반응형 */
+        @media (max-width: 1200px) {
+            .input-row {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 5px;
+            }
+            
+            .header h1 {
+                font-size: 1.1em;
+                padding: 12px;
+            }
+
+            .input-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+            
+            .input-group label {
+                font-size: 0.8em;
+            }
+            
+            .input-section h2 {
+                font-size: 1em;
+            }
+
+            .button-row {
+                justify-content: center;
+                gap: 5px;
+                flex-wrap: wrap;
+            }
+            
+            .btn {
+                padding: 8px 10px;
+                font-size: 0.75em;
+            }
+            
+            .divider {
+                display: none;
+            }
+            
+            .voice-input-btn {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+            
+            .table-section {
+                font-size: 0.8em;
+            }
+            
+            #ledgerTable th, #ledgerTable td {
+                padding: 6px 4px;
+                font-size: 0.75em;
+            }
+            
+            .edit-btn, .delete-btn {
+                padding: 2px 5px;
+                font-size: 0.7em;
+            }
+            
+            .carryover-section {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+            
+            .main-content {
+                padding: 10px;
+            }
+            
+            .modal-content {
+                margin: 10px;
+                padding: 15px;
+                max-height: 90vh;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .voice-status {
+                grid-column: span 3;
+                text-align: center;
+            }
+        }
+        
+        /* 오프라인 표시 */
+        .offline-indicator {
+            display: none;
+            background: #dc3545;
+            color: white;
+            text-align: center;
+            padding: 8px;
+            font-size: 0.85em;
+        }
+        
+        .offline-indicator.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- PWA 설치 배너 -->
+    <div class="install-banner" id="installBanner">
+        <span>📱 홈 화면에 앱을 설치하면 더 편리하게 사용할 수 있습니다!</span>
+        <button id="installBtn">설치하기</button>
+        <button class="close-install" id="closeInstall">×</button>
+    </div>
+    
+    <!-- 오프라인 표시 -->
+    <div class="offline-indicator" id="offlineIndicator">
+        📴 오프라인 모드 - 인터넷 연결이 없어도 사용 가능합니다
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>📖 영덕제일교회 재정출납부</h1>
+        </div>
+
+        <div class="main-content">
+            <!-- 이월금 설정 -->
+            <div class="carryover-section">
+                <label>📌 전기이월금:</label>
+                <input type="text" id="carryoverAmount" placeholder="이월금 입력" oninput="formatAmountInput(this)" onchange="updateCarryover()">
+            </div>
+
+            <!-- 입력 섹션 -->
+            <div class="input-section">
+                <h2>📝 거래 입력 <span style="font-size:0.7em; color:#6c757d;">(🎤 버튼을 눌러 음성 입력)</span></h2>
+                
+                <div class="input-row">
+                    <div class="input-group">
+                        <label>월</label>
+                        <select id="inputMonth">
+                            <option value="1">1월</option>
+                            <option value="2">2월</option>
+                            <option value="3">3월</option>
+                            <option value="4">4월</option>
+                            <option value="5">5월</option>
+                            <option value="6">6월</option>
+                            <option value="7">7월</option>
+                            <option value="8">8월</option>
+                            <option value="9">9월</option>
+                            <option value="10">10월</option>
+                            <option value="11">11월</option>
+                            <option value="12">12월</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>일</label>
+                        <div class="input-with-voice">
+                            <input type="text" id="inputDay" placeholder="일" maxlength="2" class="day-input">
+                            <button type="button" class="voice-mini-btn" onclick="startFieldVoice('day')" title="음성입력">🎤</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>💰 수입과목</label>
+                        <select id="inputIncomeCategory" class="income-select" onchange="handleCategoryChange('income')">
+                            <option value="">-- 수입 선택 --</option>
+                            <option value="십일조헌금">십일조헌금</option>
+                            <option value="감사헌금">감사헌금</option>
+                            <option value="주일헌금">주일헌금</option>
+                            <option value="구역헌금">구역헌금</option>
+                            <option value="영시예배헌금">영시예배헌금</option>
+                            <option value="부활절헌금">부활절헌금</option>
+                            <option value="맥추감사헌금">맥추감사헌금</option>
+                            <option value="추수감사헌금">추수감사헌금</option>
+                            <option value="성탄헌금">성탄헌금</option>
+                            <option value="특별헌금">특별헌금</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>💸 지출과목</label>
+                        <select id="inputExpenseCategory" class="expense-select" onchange="handleCategoryChange('expense')">
+                            <option value="">-- 지출 선택 --</option>
+                            <option value="목회자사례비">목회자사례비</option>
+                            <option value="절찬대">절찬대</option>
+                            <option value="적립건강국민">적립건강국민</option>
+                            <option value="예배환경비">예배환경비</option>
+                            <option value="부흥회(세미나)">부흥회(세미나)</option>
+                            <option value="찬양대">찬양대</option>
+                            <option value="전도비">전도비</option>
+                            <option value="선교지원비">선교지원비</option>
+                            <option value="교역자">교역자</option>
+                            <option value="교사교육비">교사교육비</option>
+                            <option value="새가족교육비">새가족교육비</option>
+                            <option value="도서및인쇄비">도서및인쇄비</option>
+                            <option value="주일학교">주일학교</option>
+                            <option value="중고등부">중고등부</option>
+                            <option value="청년회">청년회</option>
+                            <option value="장학부">장학부</option>
+                            <option value="3040">3040</option>
+                            <option value="경조비">경조비</option>
+                            <option value="사회봉사비">사회봉사비</option>
+                            <option value="제일문화센터">제일문화센터</option>
+                            <option value="심방비">심방비</option>
+                            <option value="족구">족구</option>
+                            <option value="축구선교비">축구선교비</option>
+                            <option value="행사비">행사비</option>
+                            <option value="급식비">급식비</option>
+                            <option value="연합활동비">연합활동비</option>
+                            <option value="염장비">염장비</option>
+                            <option value="기타잡비">기타잡비</option>
+                            <option value="재세공과금">재세공과금</option>
+                            <option value="차량구입비">차량구입비</option>
+                            <option value="관리비">관리비</option>
+                            <option value="차량유지비">차량유지비</option>
+                            <option value="수선유지비">수선유지비</option>
+                            <option value="회의비">회의비</option>
+                            <option value="연료비">연료비</option>
+                            <option value="교통비">교통비</option>
+                            <option value="휴가비">휴가비</option>
+                            <option value="상회비">상회비</option>
+                            <option value="예비비">예비비</option>
+                            <option value="건축회계">건축회계</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>적요</label>
+                        <div class="input-with-voice">
+                            <input type="text" id="inputDescription" placeholder="내용 입력">
+                            <button type="button" class="voice-mini-btn" onclick="startFieldVoice('description')" title="음성입력">🎤</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>수입</label>
+                        <div class="input-with-voice">
+                            <input type="text" id="inputIncome" placeholder="0" class="amount-input" oninput="formatAmountInput(this)">
+                            <button type="button" class="voice-mini-btn" onclick="startFieldVoice('income')" title="음성입력">🎤</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>지출</label>
+                        <div class="input-with-voice">
+                            <input type="text" id="inputExpense" placeholder="0" class="amount-input" oninput="formatAmountInput(this)">
+                            <button type="button" class="voice-mini-btn" onclick="startFieldVoice('expense')" title="음성입력">🎤</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>비고</label>
+                        <div class="input-with-voice">
+                            <input type="text" id="inputNote" placeholder="비고">
+                            <button type="button" class="voice-mini-btn" onclick="startFieldVoice('note')" title="음성입력">🎤</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 음성 입력 상태 표시 -->
+                <div class="voice-field-status" id="voiceFieldStatus"></div>
+
+                <!-- 버튼 그룹 - 한 줄에 컴팩트하게 -->
+                <div class="button-row">
+                    <button class="voice-input-btn" id="voiceBtn" onclick="toggleVoiceInput()">🎤 전체음성입력</button>
+                    <span class="voice-status" id="voiceStatus">🎙️ 듣고 있습니다...</span>
+                    
+                    <span class="divider"></span>
+                    
+                    <button class="btn btn-primary" id="addBtn" onclick="addEntry()">➕ 추가</button>
+                    <button class="btn btn-danger" id="cancelEditBtn" onclick="cancelEdit()" style="display:none;">❌ 취소</button>
+                    <button class="btn btn-success" onclick="saveData()">💾 엑셀저장</button>
+                    <button class="btn btn-info" onclick="recalculate()">🔄 재계산</button>
+                    <button class="btn btn-warning" onclick="openSummaryModal()">📊 항목집계</button>
+                    
+                    <span class="divider"></span>
+                    
+                    <button class="btn btn-primary" onclick="printAll()">🖨️ 전체출력</button>
+                    <button class="btn btn-info" onclick="openMonthPrintModal()">📅 월별출력</button>
+                    <button class="btn btn-warning" onclick="openCategoryPrintModal()">📋 항목출력</button>
+                    
+                    <span class="divider"></span>
+                    
+                    <button class="btn btn-secondary" onclick="exportData()">📤 내보내기</button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 불러오기</button>
+                    <input type="file" id="importFile" accept=".json,.xlsx,.xls" style="display:none;" onchange="importData(event)">
+                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ 삭제</button>
+                </div>
+            </div>
+
+            <!-- 테이블 -->
+            <div class="table-section">
+                <table id="ledgerTable">
+                    <thead>
+                        <tr>
+                            <th>월일</th>
+                            <th>과목</th>
+                            <th>적요</th>
+                            <th>수입</th>
+                            <th>지출</th>
+                            <th>잔액</th>
+                            <th>비고</th>
+                            <th>관리</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 집계 모달 -->
+    <div class="modal" id="summaryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📊 항목별 집계</h3>
+                <button class="close-btn" onclick="closeModal('summaryModal')">&times;</button>
+            </div>
+            <div id="summaryContent"></div>
+            <div class="print-button-area">
+                <button class="btn btn-primary print-btn" onclick="printSummary()">🖨️ 인쇄하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 전체 출력 모달 -->
+    <div class="modal" id="allPrintModal">
+        <div class="modal-content" style="max-width: 1000px;">
+            <div class="modal-header">
+                <h3>🖨️ 장부 전체 출력</h3>
+                <button class="close-btn" onclick="closeModal('allPrintModal')">&times;</button>
+            </div>
+            <div id="allPrintPreview"></div>
+            <div class="print-button-area">
+                <button class="btn btn-primary print-btn" onclick="executePrintAll()">🖨️ 인쇄하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 월 선택 출력 모달 -->
+    <div class="modal" id="monthPrintModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📅 선택월 출력</h3>
+                <button class="close-btn" onclick="closeModal('monthPrintModal')">&times;</button>
+            </div>
+            <div class="month-selector">
+                <label>출력할 월 선택: </label>
+                <select id="printMonth">
+                    <option value="1">1월</option>
+                    <option value="2">2월</option>
+                    <option value="3">3월</option>
+                    <option value="4">4월</option>
+                    <option value="5">5월</option>
+                    <option value="6">6월</option>
+                    <option value="7">7월</option>
+                    <option value="8">8월</option>
+                    <option value="9">9월</option>
+                    <option value="10">10월</option>
+                    <option value="11">11월</option>
+                    <option value="12">12월</option>
+                </select>
+            </div>
+            <div id="monthPrintPreview"></div>
+            <div class="print-button-area">
+                <button class="btn btn-primary print-btn" onclick="printMonth()">🖨️ 인쇄하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 항목별 출력 모달 -->
+    <div class="modal" id="categoryPrintModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>📋 항목별 출력</h3>
+                <button class="close-btn" onclick="closeModal('categoryPrintModal')">&times;</button>
+            </div>
+            <div class="month-selector">
+                <label>출력할 항목 선택: </label>
+                <select id="printCategory"></select>
+            </div>
+            <div id="categoryPrintPreview"></div>
+            <div class="print-button-area">
+                <button class="btn btn-primary print-btn" onclick="printCategory()">🖨️ 인쇄하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 저장 상태 -->
+    <div class="save-status" id="saveStatus">✅ 저장되었습니다!</div>
+
+    <script>
+        // 수입/지출 과목 목록
+        const incomeCategories = [
+            '십일조헌금', '감사헌금', '주일헌금', '구역헌금', '영시예배헌금',
+            '부활절헌금', '맥추감사헌금', '추수감사헌금', '성탄헌금', '특별헌금'
+        ];
+
+        const expenseCategories = [
+            '목회자사례비', '절찬대', '적립건강국민', '예배환경비', '부흥회(세미나)',
+            '찬양대', '전도비', '선교지원비', '교역자', '교사교육비', '새가족교육비',
+            '도서및인쇄비', '주일학교', '중고등부', '청년회', '장학부', '3040',
+            '경조비', '사회봉사비', '제일문화센터', '심방비', '족구', '축구선교비',
+            '행사비', '급식비', '연합활동비', '염장비', '기타잡비', '재세공과금',
+            '차량구입비', '관리비', '차량유지비', '수선유지비', '회의비', '연료비',
+            '교통비', '휴가비', '상회비', '예비비', '건축회계'
+        ];
+
+        // 데이터 저장소
+        let ledgerData = [];
+        let carryoverAmount = 0;
+        let recognition = null;
+        let fieldRecognition = null;
+        let currentVoiceField = null;
+        let editMode = false;
+        let editingId = null;
+
+        // 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            initVoiceRecognition();
+            initFieldVoiceRecognition();
+            setCurrentMonth();
+        });
+
+        // 현재 월 설정
+        function setCurrentMonth() {
+            const currentMonth = new Date().getMonth() + 1;
+            document.getElementById('inputMonth').value = currentMonth;
+        }
+
+        // 과목 선택 처리 (수입 선택시 지출 초기화, 반대도 동일)
+        function handleCategoryChange(type) {
+            if (type === 'income') {
+                const incomeVal = document.getElementById('inputIncomeCategory').value;
+                if (incomeVal) {
+                    document.getElementById('inputExpenseCategory').value = '';
+                    document.getElementById('inputExpense').value = '';
+                    document.getElementById('inputIncome').focus();
+                }
+            } else if (type === 'expense') {
+                const expenseVal = document.getElementById('inputExpenseCategory').value;
+                if (expenseVal) {
+                    document.getElementById('inputIncomeCategory').value = '';
+                    document.getElementById('inputIncome').value = '';
+                    document.getElementById('inputExpense').focus();
+                }
+            }
+        }
+
+        // 필드별 음성 인식 초기화
+        function initFieldVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                fieldRecognition = new SpeechRecognition();
+                fieldRecognition.lang = 'ko-KR';
+                fieldRecognition.continuous = false;
+                fieldRecognition.interimResults = false;
+
+                fieldRecognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    applyFieldVoice(transcript);
+                };
+
+                fieldRecognition.onerror = function(event) {
+                    console.error('음성 인식 오류:', event.error);
+                    stopFieldVoice();
+                    showFieldVoiceStatus('음성 인식 오류가 발생했습니다. 다시 시도해 주세요.', 'error');
+                };
+
+                fieldRecognition.onend = function() {
+                    stopFieldVoice();
+                };
+            }
+        }
+
+        // 필드별 음성 입력 시작
+        function startFieldVoice(fieldName) {
+            if (!fieldRecognition) {
+                alert('이 브라우저는 음성 인식을 지원하지 않습니다.\nChrome 브라우저를 사용해 주세요.');
+                return;
+            }
+
+            // 이전 녹음 중지
+            stopFieldVoice();
+
+            currentVoiceField = fieldName;
+            
+            // 버튼 상태 변경
+            const allBtns = document.querySelectorAll('.voice-mini-btn');
+            allBtns.forEach(btn => btn.classList.remove('recording'));
+            
+            event.target.classList.add('recording');
+
+            // 필드별 안내 메시지
+            const fieldNames = {
+                'day': '일자',
+                'description': '적요',
+                'income': '수입금액',
+                'expense': '지출금액',
+                'note': '비고'
+            };
+
+            showFieldVoiceStatus(`🎙️ "${fieldNames[fieldName]}" 입력 중... 말씀해 주세요.`, 'recording');
+
+            try {
+                fieldRecognition.start();
+            } catch (e) {
+                console.error('음성 인식 시작 오류:', e);
+            }
+        }
+
+        // 필드별 음성 인식 결과 적용
+        function applyFieldVoice(transcript) {
+            let value = transcript.trim();
+            
+            // 숫자 필드인 경우 숫자 추출
+            if (currentVoiceField === 'day' || currentVoiceField === 'income' || currentVoiceField === 'expense') {
+                value = extractNumber(value);
+            }
+
+            // 해당 필드에 값 설정
+            const fieldMap = {
+                'day': 'inputDay',
+                'description': 'inputDescription',
+                'income': 'inputIncome',
+                'expense': 'inputExpense',
+                'note': 'inputNote'
+            };
+
+            const inputId = fieldMap[currentVoiceField];
+            if (inputId) {
+                document.getElementById(inputId).value = value;
+                showFieldVoiceStatus(`✅ 인식 완료: "${transcript}" → ${value}`, 'success');
+            }
+
+            stopFieldVoice();
+        }
+
+        // 숫자 추출 함수
+        function extractNumber(text) {
+            // 한글 숫자 변환
+            const koreanToNum = {
+                '일': 1, '이': 2, '삼': 3, '사': 4, '오': 5,
+                '육': 6, '칠': 7, '팔': 8, '구': 9, '십': 10,
+                '백': 100, '천': 1000, '만': 10000
+            };
+
+            // "오만원", "삼천원" 등 처리
+            text = text.replace(/원/g, '');
+            
+            // 숫자 직접 추출
+            const numMatch = text.match(/[\d,]+/);
+            if (numMatch) {
+                return parseInt(numMatch[0].replace(/,/g, ''));
+            }
+
+            // "만" 단위 처리: "5만" -> 50000, "오만" -> 50000
+            const manMatch = text.match(/(\d+|[일이삼사오육칠팔구십]+)\s*만/);
+            if (manMatch) {
+                let num = parseInt(manMatch[1]);
+                if (isNaN(num)) {
+                    // 한글 숫자인 경우
+                    num = koreanToNum[manMatch[1]] || 0;
+                }
+                return num * 10000;
+            }
+
+            // "천" 단위 처리
+            const cheonMatch = text.match(/(\d+|[일이삼사오육칠팔구십]+)\s*천/);
+            if (cheonMatch) {
+                let num = parseInt(cheonMatch[1]);
+                if (isNaN(num)) {
+                    num = koreanToNum[cheonMatch[1]] || 0;
+                }
+                return num * 1000;
+            }
+
+            // 단순 숫자
+            const simpleNum = parseInt(text);
+            if (!isNaN(simpleNum)) {
+                return simpleNum;
+            }
+
+            return text;
+        }
+
+        // 필드 음성 입력 중지
+        function stopFieldVoice() {
+            if (fieldRecognition) {
+                try {
+                    fieldRecognition.stop();
+                } catch (e) {}
+            }
+            
+            // 모든 버튼 상태 초기화
+            const allBtns = document.querySelectorAll('.voice-mini-btn');
+            allBtns.forEach(btn => btn.classList.remove('recording'));
+            
+            currentVoiceField = null;
+        }
+
+        // 필드 음성 상태 표시
+        function showFieldVoiceStatus(message, type) {
+            const statusEl = document.getElementById('voiceFieldStatus');
+            statusEl.textContent = message;
+            statusEl.className = 'voice-field-status active';
+            
+            if (type === 'error') {
+                statusEl.style.background = '#f8d7da';
+                statusEl.style.color = '#721c24';
+            } else if (type === 'success') {
+                statusEl.style.background = '#d4edda';
+                statusEl.style.color = '#155724';
+            } else {
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.color = '#856404';
+            }
+
+            // 3초 후 자동 숨김
+            setTimeout(() => {
+                statusEl.classList.remove('active');
+            }, 3000);
+        }
+
+        // 음성 인식 초기화 (전체 음성 입력용)
+        function initVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ko-KR';
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.onresult = function(event) {
+                    const transcript = event.results[0][0].transcript;
+                    parseVoiceInput(transcript);
+                    stopVoiceInput();
+                };
+
+                recognition.onerror = function(event) {
+                    console.error('음성 인식 오류:', event.error);
+                    stopVoiceInput();
+                    alert('음성 인식 중 오류가 발생했습니다. 다시 시도해 주세요.');
+                };
+
+                recognition.onend = function() {
+                    stopVoiceInput();
+                };
+            }
+        }
+
+        // 음성 입력 토글
+        function toggleVoiceInput() {
+            const btn = document.getElementById('voiceBtn');
+            const status = document.getElementById('voiceStatus');
+
+            if (btn.classList.contains('recording')) {
+                stopVoiceInput();
+            } else {
+                if (recognition) {
+                    btn.classList.add('recording');
+                    btn.innerHTML = '🔴 녹음중';
+                    status.classList.add('active');
+                    recognition.start();
+                } else {
+                    alert('이 브라우저는 음성 인식을 지원하지 않습니다.\nChrome 브라우저를 사용해 주세요.');
+                }
+            }
+        }
+
+        function stopVoiceInput() {
+            const btn = document.getElementById('voiceBtn');
+            const status = document.getElementById('voiceStatus');
+            btn.classList.remove('recording');
+            btn.innerHTML = '🎤 전체음성입력';
+            status.classList.remove('active');
+            if (recognition) {
+                recognition.stop();
+            }
+        }
+
+        // 음성 입력 파싱
+        function parseVoiceInput(text) {
+            console.log('음성 인식 결과:', text);
+            
+            // 숫자 한글 변환
+            const koreanNumbers = {
+                '일': '1', '이': '2', '삼': '3', '사': '4', '오': '5',
+                '육': '6', '칠': '7', '팔': '8', '구': '9', '십': '10',
+                '십일': '11', '십이': '12'
+            };
+
+            // 월 추출
+            let month = null;
+            const monthMatch = text.match(/(\d+|십일|십이|일|이|삼|사|오|육|칠|팔|구|십)\s*월/);
+            if (monthMatch) {
+                month = koreanNumbers[monthMatch[1]] || monthMatch[1];
+            }
+
+            // 일 추출
+            let day = null;
+            const dayMatch = text.match(/월\s*(\d+)\s*일/);
+            if (dayMatch) {
+                day = dayMatch[1];
+            }
+
+            // 금액 추출
+            let amount = null;
+            const amountMatch = text.match(/(\d+)\s*(원|만원|천원)/);
+            if (amountMatch) {
+                amount = parseInt(amountMatch[1]);
+                if (amountMatch[2] === '만원') amount *= 10000;
+                if (amountMatch[2] === '천원') amount *= 1000;
+            }
+
+            // 수입/지출 과목 찾기
+            let foundIncomeCategory = null;
+            let foundExpenseCategory = null;
+
+            for (const cat of incomeCategories) {
+                if (text.includes(cat) || text.includes(cat.replace('헌금', ''))) {
+                    foundIncomeCategory = cat;
+                    break;
+                }
+            }
+
+            if (!foundIncomeCategory) {
+                for (const cat of expenseCategories) {
+                    if (text.includes(cat)) {
+                        foundExpenseCategory = cat;
+                        break;
+                    }
+                }
+            }
+
+            // 입력 필드에 값 설정
+            if (month) document.getElementById('inputMonth').value = month;
+            if (day) document.getElementById('inputDay').value = day;
+            
+            if (foundIncomeCategory) {
+                document.getElementById('inputIncomeCategory').value = foundIncomeCategory;
+                document.getElementById('inputExpenseCategory').value = '';
+                if (amount) {
+                    document.getElementById('inputIncome').value = amount;
+                    document.getElementById('inputExpense').value = '';
+                }
+            } else if (foundExpenseCategory) {
+                document.getElementById('inputExpenseCategory').value = foundExpenseCategory;
+                document.getElementById('inputIncomeCategory').value = '';
+                if (amount) {
+                    document.getElementById('inputExpense').value = amount;
+                    document.getElementById('inputIncome').value = '';
+                }
+            }
+
+            // 적요 추출
+            let description = text;
+            if (monthMatch) description = description.replace(monthMatch[0], '');
+            if (dayMatch) description = description.replace(dayMatch[0], '');
+            if (amountMatch) description = description.replace(amountMatch[0], '');
+            description = description.replace(/수입|지출|원/g, '').trim();
+            
+            // 과목명 제거
+            if (foundIncomeCategory) description = description.replace(foundIncomeCategory, '');
+            if (foundExpenseCategory) description = description.replace(foundExpenseCategory, '');
+            description = description.trim();
+            
+            if (description) document.getElementById('inputDescription').value = description;
+
+            alert(`음성 인식 완료!\n인식된 내용: ${text}\n\n입력 내용을 확인 후 "추가" 버튼을 눌러주세요.`);
+        }
+
+        // 거래 추가 또는 수정
+        function addEntry() {
+            const month = document.getElementById('inputMonth').value;
+            const day = document.getElementById('inputDay').value.trim();
+            const incomeCategory = document.getElementById('inputIncomeCategory').value;
+            const expenseCategory = document.getElementById('inputExpenseCategory').value;
+            const description = document.getElementById('inputDescription').value.trim();
+            const incomeValue = document.getElementById('inputIncome').value.trim();
+            const expenseValue = document.getElementById('inputExpense').value.trim();
+            const note = document.getElementById('inputNote').value.trim();
+            
+            // 쉼표 제거 후 숫자만 추출
+            const income = getNumericValue(incomeValue);
+            const expense = getNumericValue(expenseValue);
+
+            // 과목 결정
+            const category = incomeCategory || expenseCategory;
+
+            // 검증
+            if (!day) {
+                alert('일자를 입력해 주세요.');
+                document.getElementById('inputDay').focus();
+                return;
+            }
+
+            if (!category) {
+                alert('수입과목 또는 지출과목을 선택해 주세요.');
+                return;
+            }
+
+            // 수입 과목 선택 시 수입 금액 필수
+            if (incomeCategory && income <= 0) {
+                alert('수입 금액을 입력해 주세요.');
+                document.getElementById('inputIncome').focus();
+                return;
+            }
+
+            // 지출 과목 선택 시 지출 금액 필수
+            if (expenseCategory && expense <= 0) {
+                alert('지출 금액을 입력해 주세요.');
+                document.getElementById('inputExpense').focus();
+                return;
+            }
+
+            if (editMode && editingId !== null) {
+                // 수정 모드: 기존 항목 업데이트
+                const index = ledgerData.findIndex(e => e.id === editingId);
+                if (index !== -1) {
+                    ledgerData[index] = {
+                        id: editingId,
+                        month: parseInt(month),
+                        day: parseInt(day),
+                        category: category,
+                        categoryType: incomeCategory ? 'income' : 'expense',
+                        description: description,
+                        income: income,
+                        expense: expense,
+                        note: note
+                    };
+                    showSaveStatus('항목이 수정되었습니다!');
+                }
+                cancelEdit();
+            } else {
+                // 추가 모드: 새 항목 추가
+                const entry = {
+                    id: Date.now(),
+                    month: parseInt(month),
+                    day: parseInt(day),
+                    category: category,
+                    categoryType: incomeCategory ? 'income' : 'expense',
+                    description: description,
+                    income: income,
+                    expense: expense,
+                    note: note
+                };
+
+                ledgerData.push(entry);
+                showSaveStatus('항목이 추가되었습니다!');
+            }
+
+            sortData();
+            renderTable();
+            clearInputs();
+            autoSave();
+        }
+
+        // 항목 수정 시작
+        function editEntry(id) {
+            const entry = ledgerData.find(e => e.id === id);
+            if (!entry) return;
+
+            // 수정 모드 활성화
+            editMode = true;
+            editingId = id;
+
+            // 입력 폼에 데이터 로드
+            document.getElementById('inputMonth').value = entry.month;
+            document.getElementById('inputDay').value = entry.day;
+            document.getElementById('inputDescription').value = entry.description || '';
+            document.getElementById('inputIncome').value = entry.income ? formatNumber(entry.income) : '';
+            document.getElementById('inputExpense').value = entry.expense ? formatNumber(entry.expense) : '';
+            document.getElementById('inputNote').value = entry.note || '';
+
+            // 과목 설정
+            if (entry.categoryType === 'income' || entry.income > 0) {
+                document.getElementById('inputIncomeCategory').value = entry.category;
+                document.getElementById('inputExpenseCategory').value = '';
+            } else {
+                document.getElementById('inputExpenseCategory').value = entry.category;
+                document.getElementById('inputIncomeCategory').value = '';
+            }
+
+            // 버튼 상태 변경
+            updateEditModeUI(true);
+
+            // 입력 영역으로 스크롤
+            document.querySelector('.input-section').scrollIntoView({ behavior: 'smooth' });
+            
+            showSaveStatus('수정할 항목을 불러왔습니다. 수정 후 "수정완료" 버튼을 누르세요.');
+        }
+
+        // 수정 취소
+        function cancelEdit() {
+            editMode = false;
+            editingId = null;
+            clearInputs();
+            updateEditModeUI(false);
+        }
+
+        // 수정 모드 UI 업데이트
+        function updateEditModeUI(isEditMode) {
+            const addBtn = document.getElementById('addBtn');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            const inputSection = document.querySelector('.input-section');
+
+            if (isEditMode) {
+                addBtn.innerHTML = '✏️ 수정완료';
+                addBtn.classList.remove('btn-primary');
+                addBtn.classList.add('btn-warning');
+                cancelBtn.style.display = 'inline-flex';
+                inputSection.style.background = '#fff8e1';
+                inputSection.style.borderColor = '#ffca28';
+            } else {
+                addBtn.innerHTML = '➕ 추가';
+                addBtn.classList.remove('btn-warning');
+                addBtn.classList.add('btn-primary');
+                cancelBtn.style.display = 'none';
+                inputSection.style.background = '#f8f9fa';
+                inputSection.style.borderColor = '#e9ecef';
+            }
+        }
+
+        // 데이터 정렬 (월, 일 순)
+        function sortData() {
+            ledgerData.sort((a, b) => {
+                if (a.month !== b.month) return a.month - b.month;
+                return a.day - b.day;
+            });
+        }
+
+        // 입력 필드 초기화
+        function clearInputs() {
+            document.getElementById('inputDay').value = '';
+            document.getElementById('inputIncomeCategory').value = '';
+            document.getElementById('inputExpenseCategory').value = '';
+            document.getElementById('inputDescription').value = '';
+            document.getElementById('inputIncome').value = '';
+            document.getElementById('inputExpense').value = '';
+            document.getElementById('inputNote').value = '';
+        }
+
+        // 테이블 렌더링
+        function renderTable() {
+            const tbody = document.getElementById('ledgerBody');
+            tbody.innerHTML = '';
+
+            let balance = carryoverAmount;
+            let currentMonth = 0;
+            let monthlyIncome = 0;
+            let monthlyExpense = 0;
+            let cumulativeIncome = 0;
+            let cumulativeExpense = 0;
+
+            // 이월금 행 추가
+            if (carryoverAmount > 0) {
+                const carryoverRow = document.createElement('tr');
+                carryoverRow.innerHTML = `
+                    <td>-</td>
+                    <td>전기이월</td>
+                    <td>전기이월금</td>
+                    <td class="amount-income">${formatNumber(carryoverAmount)}</td>
+                    <td>-</td>
+                    <td class="amount-balance">${formatNumber(carryoverAmount)}</td>
+                    <td>-</td>
+                    <td>-</td>
+                `;
+                carryoverRow.style.background = '#e7f5ff';
+                tbody.appendChild(carryoverRow);
+            }
+
+            ledgerData.forEach((entry, index) => {
+                // 월이 바뀌면 이전 월의 월계 표시
+                if (currentMonth !== 0 && currentMonth !== entry.month) {
+                    addMonthlyTotal(tbody, currentMonth, monthlyIncome, monthlyExpense, balance);
+                    addCumulativeTotal(tbody, cumulativeIncome, cumulativeExpense, balance);
+                    monthlyIncome = 0;
+                    monthlyExpense = 0;
+                }
+
+                currentMonth = entry.month;
+                balance += entry.income - entry.expense;
+                monthlyIncome += entry.income;
+                monthlyExpense += entry.expense;
+                cumulativeIncome += entry.income;
+                cumulativeExpense += entry.expense;
+
+                const row = document.createElement('tr');
+                const entryId = entry.id;
+                row.innerHTML = `
+                    <td>${entry.month}/${entry.day}</td>
+                    <td>${entry.category}</td>
+                    <td>${entry.description}</td>
+                    <td class="amount-income">${entry.income > 0 ? formatNumber(entry.income) : '-'}</td>
+                    <td class="amount-expense">${formatExpense(entry.expense)}</td>
+                    <td class="amount-balance">${formatNumber(balance)}</td>
+                    <td>${entry.note}</td>
+                    <td>
+                        <button class="edit-btn" type="button">수정</button>
+                        <button class="delete-btn" type="button">삭제</button>
+                    </td>
+                `;
+                // 수정 버튼 클릭 이벤트
+                const editBtn = row.querySelector('.edit-btn');
+                editBtn.onclick = function() {
+                    editEntry(entryId);
+                };
+                // 삭제 버튼 클릭 이벤트
+                const deleteBtn = row.querySelector('.delete-btn');
+                deleteBtn.onclick = function() {
+                    if (confirm('이 항목을 삭제하시겠습니까?')) {
+                        ledgerData = ledgerData.filter(e => e.id !== entryId);
+                        renderTable();
+                        autoSave();
+                        showSaveStatus('항목이 삭제되었습니다!');
+                    }
+                };
+                tbody.appendChild(row);
+            });
+
+            // 마지막 월의 월계/누계 표시
+            if (ledgerData.length > 0) {
+                addMonthlyTotal(tbody, currentMonth, monthlyIncome, monthlyExpense, balance);
+                addCumulativeTotal(tbody, cumulativeIncome + carryoverAmount, cumulativeExpense, balance);
+            }
+        }
+
+        // 월계 행 추가
+        function addMonthlyTotal(tbody, month, income, expense, balance) {
+            const row = document.createElement('tr');
+            row.className = 'monthly-total';
+            row.innerHTML = `
+                <td colspan="3">${month}월 월계</td>
+                <td class="amount-income">${formatNumber(income)}</td>
+                <td class="amount-expense">${expense > 0 ? '-' + formatNumber(expense) : '-'}</td>
+                <td class="amount-balance">${formatNumber(balance)}</td>
+                <td colspan="2"></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // 누계 행 추가
+        function addCumulativeTotal(tbody, income, expense, balance) {
+            const row = document.createElement('tr');
+            row.className = 'cumulative-total';
+            row.innerHTML = `
+                <td colspan="3">누계</td>
+                <td class="amount-income">${formatNumber(income)}</td>
+                <td class="amount-expense">${expense > 0 ? '-' + formatNumber(expense) : '-'}</td>
+                <td class="amount-balance">${formatNumber(balance)}</td>
+                <td colspan="2"></td>
+            `;
+            tbody.appendChild(row);
+        }
+
+        // 항목 삭제
+        function deleteEntry(id) {
+            if (confirm('이 항목을 삭제하시겠습니까?')) {
+                const numId = parseInt(id);
+                ledgerData = ledgerData.filter(entry => entry.id !== numId);
+                renderTable();
+                autoSave();
+                showSaveStatus('항목이 삭제되었습니다!');
+            }
+        }
+
+        // 숫자 포맷 (천단위 쉼표)
+        function formatNumber(num) {
+            return num.toLocaleString('ko-KR');
+        }
+
+        // 지출 금액 포맷 (마이너스 부호 포함)
+        function formatExpense(num) {
+            if (num <= 0) return '-';
+            return '-' + num.toLocaleString('ko-KR');
+        }
+
+        // 금액 입력 필드 포맷 (천단위 쉼표 자동 적용)
+        function formatAmountInput(input) {
+            // 숫자만 추출
+            let value = input.value.replace(/[^0-9]/g, '');
+            
+            // 빈 값이면 그대로
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            
+            // 천단위 쉼표 적용
+            input.value = parseInt(value).toLocaleString('ko-KR');
+        }
+
+        // 입력 필드에서 숫자만 추출
+        function getNumericValue(value) {
+            if (!value) return 0;
+            return parseInt(value.toString().replace(/[^0-9]/g, '')) || 0;
+        }
+
+        // 이월금 업데이트
+        function updateCarryover() {
+            carryoverAmount = getNumericValue(document.getElementById('carryoverAmount').value);
+            renderTable();
+            autoSave();
+        }
+
+        // 재계산
+        function recalculate() {
+            sortData();
+            renderTable();
+            showSaveStatus('재계산 완료!');
+        }
+
+        // 엑셀 저장 버튼 클릭 시
+        function saveData() {
+            // 엑셀 파일로 다운로드
+            saveToExcel();
+        }
+
+        // 엑셀 파일로 저장
+        function saveToExcel() {
+            // 엑셀 데이터 준비
+            const excelData = [];
+            
+            // 제목 행
+            excelData.push(['영덕제일교회 재정출납부']);
+            excelData.push(['작성일: ' + new Date().toLocaleDateString('ko-KR')]);
+            excelData.push([]);
+            
+            // 헤더 행
+            excelData.push(['월일', '과목', '적요', '수입', '지출', '잔액', '비고']);
+            
+            let balance = carryoverAmount;
+            let currentMonth = 0;
+            let monthlyIncome = 0;
+            let monthlyExpense = 0;
+            let cumulativeIncome = 0;
+            let cumulativeExpense = 0;
+
+            // 이월금 행
+            if (carryoverAmount > 0) {
+                excelData.push(['-', '전기이월', '전기이월금', carryoverAmount, '-', carryoverAmount, '-']);
+            }
+
+            // 데이터 행
+            ledgerData.forEach(entry => {
+                if (currentMonth !== 0 && currentMonth !== entry.month) {
+                    // 월계 행
+                    excelData.push([currentMonth + '월 월계', '', '', monthlyIncome, monthlyExpense > 0 ? -monthlyExpense : '', balance, '']);
+                    monthlyIncome = 0;
+                    monthlyExpense = 0;
+                }
+
+                currentMonth = entry.month;
+                balance += entry.income - entry.expense;
+                monthlyIncome += entry.income;
+                monthlyExpense += entry.expense;
+                cumulativeIncome += entry.income;
+                cumulativeExpense += entry.expense;
+
+                excelData.push([
+                    entry.month + '/' + entry.day,
+                    entry.category,
+                    entry.description || '',
+                    entry.income > 0 ? entry.income : '',
+                    entry.expense > 0 ? -entry.expense : '',
+                    balance,
+                    entry.note || ''
+                ]);
+            });
+
+            // 마지막 월계/누계
+            if (ledgerData.length > 0) {
+                excelData.push([currentMonth + '월 월계', '', '', monthlyIncome, monthlyExpense > 0 ? -monthlyExpense : '', balance, '']);
+                excelData.push(['누계', '', '', cumulativeIncome + carryoverAmount, cumulativeExpense > 0 ? -cumulativeExpense : '', balance, '']);
+            }
+
+            // 워크시트 생성
+            const ws = XLSX.utils.aoa_to_sheet(excelData);
+            
+            // 열 너비 설정
+            ws['!cols'] = [
+                { wch: 10 },  // 월일
+                { wch: 15 },  // 과목
+                { wch: 20 },  // 적요
+                { wch: 15 },  // 수입
+                { wch: 15 },  // 지출
+                { wch: 15 },  // 잔액
+                { wch: 15 }   // 비고
+            ];
+
+            // 워크북 생성
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '재정출납부');
+
+            // 파일명 생성 (현재 날짜 포함)
+            const today = new Date();
+            const fileName = `영덕제일교회_재정출납부_${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}.xlsx`;
+
+            // 엑셀 파일 다운로드
+            XLSX.writeFile(wb, fileName);
+            
+            showSaveStatus('엑셀 파일로 저장되었습니다!');
+        }
+
+        // 자동 저장 (로컬 저장소에만 저장)
+        function autoSave() {
+            const dataToSave = {
+                ledgerData: ledgerData,
+                carryoverAmount: carryoverAmount
+            };
+            localStorage.setItem('churchLedger', JSON.stringify(dataToSave));
+        }
+
+        // 데이터 로드
+        function loadData() {
+            const saved = localStorage.getItem('churchLedger');
+            if (saved) {
+                const data = JSON.parse(saved);
+                ledgerData = data.ledgerData || [];
+                carryoverAmount = data.carryoverAmount || 0;
+                document.getElementById('carryoverAmount').value = carryoverAmount ? formatNumber(carryoverAmount) : '';
+                renderTable();
+            }
+        }
+
+        // 저장 상태 표시
+        function showSaveStatus(message = '저장되었습니다!') {
+            const status = document.getElementById('saveStatus');
+            status.textContent = '✅ ' + message;
+            status.style.display = 'block';
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 2000);
+        }
+
+        // 항목별 집계 모달 열기
+        function openSummaryModal() {
+            const modal = document.getElementById('summaryModal');
+            const content = document.getElementById('summaryContent');
+            
+            // 항목별 집계 계산 (각 과목별로 개별 집계)
+            const categorySummary = {};
+            
+            ledgerData.forEach(entry => {
+                const cat = entry.category;
+                if (!categorySummary[cat]) {
+                    categorySummary[cat] = { 
+                        income: 0, 
+                        expense: 0, 
+                        incomeCount: 0, 
+                        expenseCount: 0,
+                        type: entry.categoryType || (entry.income > 0 ? 'income' : 'expense')
+                    };
+                }
+                if (entry.income > 0) {
+                    categorySummary[cat].income += entry.income;
+                    categorySummary[cat].incomeCount++;
+                }
+                if (entry.expense > 0) {
+                    categorySummary[cat].expense += entry.expense;
+                    categorySummary[cat].expenseCount++;
+                }
+            });
+
+            // 수입 항목 집계 (수입으로 분류된 과목만)
+            let html = '<h4>💰 수입 항목별 집계</h4><table class="summary-table"><tr><th>항목</th><th>건수</th><th>합계</th></tr>';
+            let totalIncome = 0;
+            
+            // 실제 데이터에 있는 수입 항목만 표시
+            Object.keys(categorySummary).forEach(cat => {
+                const data = categorySummary[cat];
+                // 수입이 있는 항목만 수입 집계에 표시
+                if (data.income > 0) {
+                    html += `<tr><td>${cat}</td><td>${data.incomeCount}</td><td class="amount-income">${formatNumber(data.income)}</td></tr>`;
+                    totalIncome += data.income;
+                }
+            });
+            
+            if (carryoverAmount > 0) {
+                html += `<tr><td>전기이월금</td><td>1</td><td class="amount-income">${formatNumber(carryoverAmount)}</td></tr>`;
+            }
+            
+            if (totalIncome === 0 && carryoverAmount === 0) {
+                html += '<tr><td colspan="3" style="text-align:center; color:#6c757d;">수입 내역이 없습니다.</td></tr>';
+            }
+            
+            html += `<tr class="monthly-total"><td colspan="2">수입 합계</td><td class="amount-income">${formatNumber(totalIncome + carryoverAmount)}</td></tr>`;
+            html += '</table>';
+
+            // 지출 항목 집계 (지출로 분류된 과목만)
+            html += '<h4 style="margin-top:20px;">💸 지출 항목별 집계</h4><table class="summary-table"><tr><th>항목</th><th>건수</th><th>합계</th></tr>';
+            let totalExpense = 0;
+            
+            // 실제 데이터에 있는 지출 항목만 표시
+            Object.keys(categorySummary).forEach(cat => {
+                const data = categorySummary[cat];
+                // 지출이 있는 항목만 지출 집계에 표시
+                if (data.expense > 0) {
+                    html += `<tr><td>${cat}</td><td>${data.expenseCount}</td><td class="amount-expense">${formatNumber(data.expense)}</td></tr>`;
+                    totalExpense += data.expense;
+                }
+            });
+            
+            if (totalExpense === 0) {
+                html += '<tr><td colspan="3" style="text-align:center; color:#6c757d;">지출 내역이 없습니다.</td></tr>';
+            }
+            
+            html += `<tr class="monthly-total"><td colspan="2">지출 합계</td><td class="amount-expense">${formatNumber(totalExpense)}</td></tr>`;
+            html += '</table>';
+
+            html += `<div style="margin-top:20px; padding:15px; background:#d4edda; border-radius:10px; text-align:center;">
+                <strong>현재 잔액: <span class="amount-balance">${formatNumber(carryoverAmount + totalIncome - totalExpense)}</span></strong>
+            </div>`;
+
+            content.innerHTML = html;
+            modal.classList.add('active');
+        }
+
+        // 월 선택 출력 모달
+        function openMonthPrintModal() {
+            document.getElementById('monthPrintModal').classList.add('active');
+            previewMonthPrint();
+        }
+
+        function previewMonthPrint() {
+            const month = parseInt(document.getElementById('printMonth').value);
+            const preview = document.getElementById('monthPrintPreview');
+            const monthData = ledgerData.filter(entry => entry.month === month);
+
+            if (monthData.length === 0) {
+                preview.innerHTML = '<p style="text-align:center; color:#6c757d;">해당 월의 데이터가 없습니다.</p>';
+                return;
+            }
+
+            // 이전 달까지의 잔액 계산 (이월금 포함)
+            const prevData = ledgerData.filter(entry => entry.month < month);
+            let balance = carryoverAmount + prevData.reduce((sum, e) => sum + e.income - e.expense, 0);
+
+            // 선택 월까지의 누계 계산
+            const cumulativeData = ledgerData.filter(entry => entry.month <= month);
+            const cumIncome = cumulativeData.reduce((sum, e) => sum + e.income, 0);
+            const cumExpense = cumulativeData.reduce((sum, e) => sum + e.expense, 0);
+
+            let html = `<h4>${month}월 거래 내역</h4><table class="summary-table">
+                <tr><th>일</th><th>과목</th><th>적요</th><th>수입</th><th>지출</th><th>잔액</th><th>비고</th></tr>`;
+
+            let monthlyIncome = 0, monthlyExpense = 0;
+            monthData.forEach(entry => {
+                monthlyIncome += entry.income;
+                monthlyExpense += entry.expense;
+                balance += entry.income - entry.expense;
+                html += `<tr>
+                    <td>${entry.day}</td>
+                    <td>${entry.category}</td>
+                    <td>${entry.description}</td>
+                    <td class="amount-income">${entry.income > 0 ? formatNumber(entry.income) : '-'}</td>
+                    <td class="amount-expense">${formatExpense(entry.expense)}</td>
+                    <td class="amount-balance">${formatNumber(balance)}</td>
+                    <td>${entry.note}</td>
+                </tr>`;
+            });
+
+            html += `<tr class="monthly-total">
+                <td colspan="3">${month}월 월계</td>
+                <td class="amount-income">${formatNumber(monthlyIncome)}</td>
+                <td class="amount-expense">${monthlyExpense > 0 ? '-' + formatNumber(monthlyExpense) : '-'}</td>
+                <td class="amount-balance">${formatNumber(balance)}</td>
+                <td></td>
+            </tr>`;
+
+            html += `<tr class="cumulative-total">
+                <td colspan="3">누계</td>
+                <td class="amount-income">${formatNumber(cumIncome + carryoverAmount)}</td>
+                <td class="amount-expense">${cumExpense > 0 ? '-' + formatNumber(cumExpense) : '-'}</td>
+                <td class="amount-balance">${formatNumber(balance)}</td>
+                <td></td>
+            </tr></table>`;
+
+            preview.innerHTML = html;
+        }
+
+        document.getElementById('printMonth').addEventListener('change', previewMonthPrint);
+
+        // 항목별 출력 모달
+        function openCategoryPrintModal() {
+            const select = document.getElementById('printCategory');
+            const categories = [...new Set(ledgerData.map(e => e.category))];
+            
+            select.innerHTML = categories.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+            
+            document.getElementById('categoryPrintModal').classList.add('active');
+            previewCategoryPrint();
+        }
+
+        function previewCategoryPrint() {
+            const category = document.getElementById('printCategory').value;
+            const preview = document.getElementById('categoryPrintPreview');
+            const catData = ledgerData.filter(entry => entry.category === category);
+
+            if (catData.length === 0) {
+                preview.innerHTML = '<p style="text-align:center; color:#6c757d;">해당 항목의 데이터가 없습니다.</p>';
+                return;
+            }
+
+            let html = `<h4>"${category}" 거래 내역</h4><table class="summary-table">
+                <tr><th>월/일</th><th>적요</th><th>수입</th><th>지출</th><th>비고</th></tr>`;
+            
+            let totalIncome = 0, totalExpense = 0;
+            catData.forEach(entry => {
+                totalIncome += entry.income;
+                totalExpense += entry.expense;
+                html += `<tr>
+                    <td>${entry.month}/${entry.day}</td>
+                    <td>${entry.description}</td>
+                    <td class="amount-income">${entry.income > 0 ? formatNumber(entry.income) : '-'}</td>
+                    <td class="amount-expense">${formatExpense(entry.expense)}</td>
+                    <td>${entry.note}</td>
+                </tr>`;
+            });
+
+            html += `<tr class="monthly-total">
+                <td colspan="2">합계</td>
+                <td class="amount-income">${formatNumber(totalIncome)}</td>
+                <td class="amount-expense">${totalExpense > 0 ? '-' + formatNumber(totalExpense) : '-'}</td>
+                <td></td>
+            </tr></table>`;
+
+            preview.innerHTML = html;
+        }
+
+        document.getElementById('printCategory').addEventListener('change', previewCategoryPrint);
+
+        // 모달 닫기
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // 전체 출력 모달 열기
+        function printAll() {
+            const preview = document.getElementById('allPrintPreview');
+            
+            let html = `<h4 style="text-align:center; margin-bottom:15px;">영덕제일교회 재정출납부</h4>`;
+            html += `<p style="text-align:center; margin-bottom:15px;">출력일: ${new Date().toLocaleDateString('ko-KR')}</p>`;
+            html += `<table class="summary-table">
+                <tr><th>월일</th><th>과목</th><th>적요</th><th>수입</th><th>지출</th><th>잔액</th><th>비고</th></tr>`;
+            
+            let balance = carryoverAmount;
+            let currentMonth = 0;
+            let monthlyIncome = 0;
+            let monthlyExpense = 0;
+            let cumulativeIncome = 0;
+            let cumulativeExpense = 0;
+
+            // 이월금
+            if (carryoverAmount > 0) {
+                html += `<tr style="background:#e7f5ff;">
+                    <td>-</td><td>전기이월</td><td>전기이월금</td>
+                    <td class="amount-income">${formatNumber(carryoverAmount)}</td>
+                    <td>-</td><td class="amount-balance">${formatNumber(carryoverAmount)}</td><td>-</td>
+                </tr>`;
+            }
+
+            ledgerData.forEach(entry => {
+                if (currentMonth !== 0 && currentMonth !== entry.month) {
+                    html += `<tr class="monthly-total">
+                        <td colspan="3">${currentMonth}월 월계</td>
+                        <td class="amount-income">${formatNumber(monthlyIncome)}</td>
+                        <td class="amount-expense">${monthlyExpense > 0 ? '-' + formatNumber(monthlyExpense) : '-'}</td>
+                        <td class="amount-balance">${formatNumber(balance)}</td><td></td>
+                    </tr>`;
+                    html += `<tr class="cumulative-total">
+                        <td colspan="3">누계</td>
+                        <td class="amount-income">${formatNumber(cumulativeIncome + carryoverAmount)}</td>
+                        <td class="amount-expense">${cumulativeExpense > 0 ? '-' + formatNumber(cumulativeExpense) : '-'}</td>
+                        <td class="amount-balance">${formatNumber(balance)}</td><td></td>
+                    </tr>`;
+                    monthlyIncome = 0;
+                    monthlyExpense = 0;
+                }
+
+                currentMonth = entry.month;
+                balance += entry.income - entry.expense;
+                monthlyIncome += entry.income;
+                monthlyExpense += entry.expense;
+                cumulativeIncome += entry.income;
+                cumulativeExpense += entry.expense;
+
+                html += `<tr>
+                    <td>${entry.month}/${entry.day}</td>
+                    <td>${entry.category}</td>
+                    <td>${entry.description}</td>
+                    <td class="amount-income">${entry.income > 0 ? formatNumber(entry.income) : '-'}</td>
+                    <td class="amount-expense">${formatExpense(entry.expense)}</td>
+                    <td class="amount-balance">${formatNumber(balance)}</td>
+                    <td>${entry.note}</td>
+                </tr>`;
+            });
+
+            if (ledgerData.length > 0) {
+                html += `<tr class="monthly-total">
+                    <td colspan="3">${currentMonth}월 월계</td>
+                    <td class="amount-income">${formatNumber(monthlyIncome)}</td>
+                    <td class="amount-expense">${monthlyExpense > 0 ? '-' + formatNumber(monthlyExpense) : '-'}</td>
+                    <td class="amount-balance">${formatNumber(balance)}</td><td></td>
+                </tr>`;
+                html += `<tr class="cumulative-total">
+                    <td colspan="3">누계</td>
+                    <td class="amount-income">${formatNumber(cumulativeIncome + carryoverAmount)}</td>
+                    <td class="amount-expense">${cumulativeExpense > 0 ? '-' + formatNumber(cumulativeExpense) : '-'}</td>
+                    <td class="amount-balance">${formatNumber(balance)}</td><td></td>
+                </tr>`;
+            }
+
+            html += '</table>';
+            preview.innerHTML = html;
+            document.getElementById('allPrintModal').classList.add('active');
+        }
+
+        // 전체 인쇄 실행
+        function executePrintAll() {
+            const content = document.getElementById('allPrintPreview').innerHTML;
+            printCustomContent('재정출납부 전체', content);
+        }
+
+        // 항목집계 인쇄
+        function printSummary() {
+            const content = document.getElementById('summaryContent').innerHTML;
+            printCustomContent('항목별 집계', content);
+        }
+
+        // 월별 출력
+        function printMonth() {
+            const month = document.getElementById('printMonth').value;
+            const printContent = document.getElementById('monthPrintPreview').innerHTML;
+            printCustomContent(`${month}월 재정출납부`, printContent);
+        }
+
+        // 항목별 출력
+        function printCategory() {
+            const category = document.getElementById('printCategory').value;
+            const printContent = document.getElementById('categoryPrintPreview').innerHTML;
+            printCustomContent(`${category} 거래내역`, printContent);
+        }
+
+        // 커스텀 출력 (iframe 방식)
+        function printCustomContent(title, content) {
+            // 기존 iframe 제거
+            const oldFrame = document.getElementById('printFrame');
+            if (oldFrame) {
+                oldFrame.remove();
+            }
+
+            // 새 iframe 생성
+            const iframe = document.createElement('iframe');
+            iframe.id = 'printFrame';
+            iframe.style.position = 'fixed';
+            iframe.style.right = '0';
+            iframe.style.bottom = '0';
+            iframe.style.width = '0';
+            iframe.style.height = '0';
+            iframe.style.border = 'none';
+            document.body.appendChild(iframe);
+
+            const printDocument = iframe.contentWindow.document;
+            printDocument.open();
+            printDocument.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${title} - 영덕제일교회</title>
+                    <style>
+                        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; }
+                        h1 { text-align: center; color: #1e3c72; margin-bottom: 10px; }
+                        h4 { color: #1e3c72; margin-top: 20px; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                        th { background: #1e3c72 !important; color: white; padding: 10px; border: 1px solid #ccc; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        td { padding: 8px; border: 1px solid #ccc; text-align: center; }
+                        .amount-income { color: #28a745; font-weight: bold; }
+                        .amount-expense { color: #dc3545; font-weight: bold; }
+                        .amount-balance { color: #1e3c72; font-weight: bold; }
+                        .monthly-total { background: #fff3cd !important; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .cumulative-total { background: #d4edda !important; font-weight: bold; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                        .summary-table { width: 100%; border-collapse: collapse; }
+                        .summary-table th { background: #495057 !important; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                    </style>
+                </head>
+                <body>
+                    <h1>📖 영덕제일교회 재정출납부</h1>
+                    <p style="text-align:center;">출력일: ${new Date().toLocaleDateString('ko-KR')}</p>
+                    <hr>
+                    ${content}
+                </body>
+                </html>
+            `);
+            printDocument.close();
+
+            // iframe 로드 후 인쇄
+            iframe.onload = function() {
+                setTimeout(function() {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                }, 250);
+            };
+        }
+
+        // ==================== 데이터 내보내기/불러오기 ====================
+        
+        // 데이터 내보내기 (JSON 데이터베이스 파일)
+        function exportData() {
+            if (ledgerData.length === 0 && carryoverAmount === 0) {
+                alert('내보낼 데이터가 없습니다.');
+                return;
+            }
+            
+            const exportObject = {
+                version: '1.0',
+                exportDate: new Date().toISOString(),
+                churchName: '영덕제일교회',
+                data: {
+                    ledgerData: ledgerData,
+                    carryoverAmount: carryoverAmount
+                }
+            };
+            
+            const jsonString = JSON.stringify(exportObject, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            
+            // 파일명 생성 (현재 날짜 포함)
+            const today = new Date();
+            const fileName = `영덕제일교회_재정데이터_${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}.json`;
+            
+            // 다운로드 링크 생성
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showSaveStatus('데이터가 파일로 내보내졌습니다!');
+        }
+        
+        // 데이터 불러오기
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const fileName = file.name.toLowerCase();
+            const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls');
+            
+            if (isExcel) {
+                // 엑셀 파일 처리
+                importExcelFile(file, event);
+            } else {
+                // JSON 파일 처리
+                importJsonFile(file, event);
+            }
+        }
+        
+        // JSON 파일 불러오기
+        function importJsonFile(file, event) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 데이터 형식 검증
+                    if (!importedData.data || !importedData.data.ledgerData) {
+                        // 이전 버전 형식 지원
+                        if (importedData.ledgerData) {
+                            importedData.data = {
+                                ledgerData: importedData.ledgerData,
+                                carryoverAmount: importedData.carryoverAmount || 0
+                            };
+                        } else {
+                            throw new Error('올바른 데이터 파일이 아닙니다.');
+                        }
+                    }
+                    
+                    // 기존 데이터가 있으면 확인
+                    if (ledgerData.length > 0) {
+                        const choice = confirm(
+                            '기존 데이터가 있습니다.\n\n' +
+                            '[확인] - 기존 데이터를 삭제하고 불러온 데이터로 대체\n' +
+                            '[취소] - 불러오기 취소'
+                        );
+                        
+                        if (!choice) {
+                            event.target.value = '';
+                            return;
+                        }
+                    }
+                    
+                    // 데이터 적용
+                    applyImportedData(importedData.data.ledgerData, importedData.data.carryoverAmount, 'JSON');
+                    
+                } catch (error) {
+                    console.error('JSON 불러오기 오류:', error);
+                    alert('파일을 불러오는 중 오류가 발생했습니다.\n올바른 JSON 파일인지 확인해 주세요.');
+                }
+                
+                event.target.value = '';
+            };
+            
+            reader.onerror = function() {
+                alert('파일을 읽는 중 오류가 발생했습니다.');
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+        
+        // 엑셀 파일 불러오기
+        function importExcelFile(file, event) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // 첫 번째 시트 가져오기
+                    const sheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[sheetName];
+                    
+                    // 시트를 배열로 변환
+                    const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    if (rows.length < 5) {
+                        throw new Error('데이터가 부족합니다.');
+                    }
+                    
+                    // 데이터 파싱
+                    const parsedData = parseExcelData(rows);
+                    
+                    // 기존 데이터가 있으면 확인
+                    if (ledgerData.length > 0) {
+                        const choice = confirm(
+                            '기존 데이터가 있습니다.\n\n' +
+                            '[확인] - 기존 데이터를 삭제하고 불러온 데이터로 대체\n' +
+                            '[취소] - 불러오기 취소'
+                        );
+                        
+                        if (!choice) {
+                            event.target.value = '';
+                            return;
+                        }
+                    }
+                    
+                    // 데이터 적용
+                    applyImportedData(parsedData.ledgerData, parsedData.carryoverAmount, '엑셀');
+                    
+                } catch (error) {
+                    console.error('엑셀 불러오기 오류:', error);
+                    alert('엑셀 파일을 불러오는 중 오류가 발생했습니다.\n\n' + 
+                          '올바른 형식의 엑셀 파일인지 확인해 주세요.\n' +
+                          '(이 앱에서 내보낸 엑셀 파일 형식이어야 합니다)');
+                }
+                
+                event.target.value = '';
+            };
+            
+            reader.onerror = function() {
+                alert('파일을 읽는 중 오류가 발생했습니다.');
+                event.target.value = '';
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 엑셀 데이터 파싱
+        function parseExcelData(rows) {
+            const result = {
+                ledgerData: [],
+                carryoverAmount: 0
+            };
+            
+            // 헤더 행 찾기 (월일, 과목, 적요... 가 있는 행)
+            let headerRowIndex = -1;
+            for (let i = 0; i < Math.min(rows.length, 10); i++) {
+                const row = rows[i];
+                if (row && row[0] && (row[0].toString().includes('월일') || row[0] === '월일')) {
+                    headerRowIndex = i;
+                    break;
+                }
+            }
+            
+            if (headerRowIndex === -1) {
+                // 헤더를 못 찾으면 4번째 행(인덱스 3)을 헤더로 가정
+                headerRowIndex = 3;
+            }
+            
+            // 데이터 행 처리 (헤더 다음 행부터)
+            for (let i = headerRowIndex + 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row || row.length === 0) continue;
+                
+                const firstCell = row[0] ? row[0].toString().trim() : '';
+                const secondCell = row[1] ? row[1].toString().trim() : '';
+                
+                // 월계, 누계 행 무시
+                if (firstCell.includes('월계') || firstCell.includes('누계') || 
+                    firstCell === '' || secondCell.includes('월계') || secondCell.includes('누계')) {
+                    continue;
+                }
+                
+                // 전기이월 처리
+                if (secondCell === '전기이월' || firstCell === '전기이월') {
+                    const incomeVal = row[3] || row[2];
+                    result.carryoverAmount = parseExcelNumber(incomeVal);
+                    continue;
+                }
+                
+                // 월/일 파싱
+                let month = 0, day = 0;
+                if (firstCell.includes('/')) {
+                    const parts = firstCell.split('/');
+                    month = parseInt(parts[0]) || 0;
+                    day = parseInt(parts[1]) || 0;
+                } else if (firstCell === '-') {
+                    continue; // 이월금 행 등 스킵
+                } else {
+                    // 숫자만 있는 경우
+                    const num = parseInt(firstCell);
+                    if (!isNaN(num) && num >= 1 && num <= 12) {
+                        month = num;
+                    }
+                }
+                
+                if (month === 0) continue;
+                
+                // 과목
+                const category = row[1] ? row[1].toString().trim() : '';
+                if (!category) continue;
+                
+                // 적요
+                const description = row[2] ? row[2].toString().trim() : '';
+                
+                // 수입/지출
+                const income = parseExcelNumber(row[3]);
+                const expense = parseExcelNumber(row[4]);
+                
+                // 비고
+                const note = row[6] ? row[6].toString().trim() : '';
+                
+                // 수입 또는 지출이 있는 경우만 추가
+                if (income > 0 || expense > 0) {
+                    result.ledgerData.push({
+                        id: Date.now() + i,
+                        month: month,
+                        day: day || 1,
+                        category: category,
+                        categoryType: income > 0 ? 'income' : 'expense',
+                        description: description,
+                        income: income,
+                        expense: expense,
+                        note: note
+                    });
+                }
+            }
+            
+            return result;
+        }
+        
+        // 엑셀 숫자 파싱 (쉼표, 원 등 제거)
+        function parseExcelNumber(value) {
+            if (!value) return 0;
+            if (typeof value === 'number') return value;
+            const str = value.toString().replace(/[^0-9.-]/g, '');
+            return parseInt(str) || 0;
+        }
+        
+        // 불러온 데이터 적용
+        function applyImportedData(newLedgerData, newCarryoverAmount, fileType) {
+            ledgerData = newLedgerData || [];
+            carryoverAmount = newCarryoverAmount || 0;
+            
+            // 이월금 필드 업데이트
+            document.getElementById('carryoverAmount').value = carryoverAmount ? formatNumber(carryoverAmount) : '';
+            
+            // 테이블 갱신 및 저장
+            sortData();
+            renderTable();
+            autoSave();
+            
+            // 불러온 정보 표시
+            let message = `${fileType} 파일에서 데이터를 성공적으로 불러왔습니다!\n\n`;
+            message += `- 거래 내역: ${ledgerData.length}건\n`;
+            message += `- 전기이월금: ${formatNumber(carryoverAmount)}`;
+            
+            alert(message);
+            showSaveStatus('데이터를 불러왔습니다!');
+        }
+
+        // 전체 삭제
+        function clearAllData() {
+            if (confirm('정말로 모든 데이터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                if (confirm('마지막 확인입니다. 정말 삭제하시겠습니까?')) {
+                    ledgerData = [];
+                    carryoverAmount = 0;
+                    document.getElementById('carryoverAmount').value = '';
+                    localStorage.removeItem('churchLedger');
+                    renderTable();
+                    alert('모든 데이터가 삭제되었습니다.');
+                }
+            }
+        }
+
+        // 모달 외부 클릭 시 닫기
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.remove('active');
+                }
+            });
+        });
+
+        // ==================== PWA 기능 ====================
+        
+        // 설치 프롬프트 저장
+        let deferredPrompt;
+        
+        // PWA 설치 이벤트 처리
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // 이미 설치되었거나 숨긴 경우 배너 표시 안함
+            if (!localStorage.getItem('pwaInstallDismissed')) {
+                document.getElementById('installBanner').classList.add('show');
+            }
+        });
+        
+        // 설치 버튼 클릭
+        document.getElementById('installBtn').addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('앱이 설치되었습니다');
+                }
+                deferredPrompt = null;
+                document.getElementById('installBanner').classList.remove('show');
+            }
+        });
+        
+        // 설치 배너 닫기
+        document.getElementById('closeInstall').addEventListener('click', () => {
+            document.getElementById('installBanner').classList.remove('show');
+            localStorage.setItem('pwaInstallDismissed', 'true');
+        });
+        
+        // 앱이 설치된 경우 배너 숨김
+        window.addEventListener('appinstalled', () => {
+            document.getElementById('installBanner').classList.remove('show');
+            console.log('앱이 성공적으로 설치되었습니다!');
+        });
+        
+        // 오프라인/온라인 상태 감지
+        function updateOnlineStatus() {
+            const indicator = document.getElementById('offlineIndicator');
+            if (navigator.onLine) {
+                indicator.classList.remove('show');
+            } else {
+                indicator.classList.add('show');
+            }
+        }
+        
+        window.addEventListener('online', updateOnlineStatus);
+        window.addEventListener('offline', updateOnlineStatus);
+        updateOnlineStatus();
+        
+        // iOS Safari에서 홈 화면 추가 안내
+        function isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        }
+        
+        function isInStandaloneMode() {
+            return ('standalone' in window.navigator) && (window.navigator.standalone);
+        }
+        
+        if (isIOS() && !isInStandaloneMode() && !localStorage.getItem('iosInstallDismissed')) {
+            // iOS에서는 beforeinstallprompt가 없으므로 별도 안내
+            setTimeout(() => {
+                if (!document.getElementById('installBanner').classList.contains('show')) {
+                    const banner = document.getElementById('installBanner');
+                    banner.innerHTML = `
+                        <span>📱 Safari 메뉴에서 "홈 화면에 추가"를 눌러 앱을 설치하세요!</span>
+                        <button class="close-install" onclick="this.parentElement.classList.remove('show'); localStorage.setItem('iosInstallDismissed', 'true');">×</button>
+                    `;
+                    banner.classList.add('show');
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
