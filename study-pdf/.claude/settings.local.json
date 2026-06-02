@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(cmd.exe *)",
+      "Bash(powershell.exe *)",
+      "Bash(echo \"exit:$?\")",
+      "Bash(C:/Users/user/AppData/Local/Programs/Python/Python311/python.exe -m uvicorn app:app --host 0.0.0.0 --port 8000)",
+      "Bash(echo \"서버 PID: $!\")",
+      "Bash(pkill -f \"uvicorn app:app\")",
+      "Bash(echo \"서버 시작됨 PID=$!\")",
+      "Bash(echo \"재시작됨 PID=$!\")",
+      "Bash(curl.exe *)",
+      "Read(//c/Temp/**)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
