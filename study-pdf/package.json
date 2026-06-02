@@ -1,0 +1,17 @@
+{
+  "name": "study-pdf",
+  "version": "1.0.0",
+  "description": "웹페이지를 클릭 한 번으로 읽기 좋은 PDF 문서로 바꾸는 앱",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js"
+  },
+  "dependencies": {
+    "@mozilla/readability": "^0.5.0",
+    "axios": "^1.7.0",
+    "express": "^4.19.0",
+    "jsdom": "^24.1.0",
+    "puppeteer": "^22.0.0"
+  }
+}
