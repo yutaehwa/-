@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>웹페이지 PDF 변환기</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --success: #16a34a;
+      --success-dark: #15803d;
+      --error: #dc2626;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic", "맑은 고딕", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 16px;
+    }
+
+    /* ── 헤더 ── */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 20px 16px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    header p {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    /* ── 메인 ── */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+    }
+
+    /* ── 입력 화면 ── */
+    #input-section {}
+
+    .label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 10px;
+      letter-spacing: 0.01em;
+    }
+
+    #url-input {
+      width: 100%;
+      padding: 14px 16px;
+      font-size: 1rem;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      background: #fafafa;
+      color: var(--text);
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    #url-input::placeholder { color: #aaa; }
+
+    #url-input:focus {
+      border-color: var(--primary);
+      background: #fff;
+    }
+
+    #url-input.is-error { border-color: var(--error); }
+
+    .inline-error {
+      font-size: 0.85rem;
+      color: var(--error);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .inline-error.show { display: block; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      margin-top: 14px;
+      padding: 15px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+    .legal-notice {
+      margin-top: 14px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    /* ── 처리 중 화면 ── */
+    #loading-section { display: none; }
+
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 3px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-title {
+      text-align: center;
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 22px;
+    }
+
+    .step-list { list-style: none; }
+
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 0;
+      font-size: 0.95rem;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      transition: color 0.3s;
+    }
+
+    .step-item:last-child { border-bottom: none; }
+
+    .step-item.active { color: var(--primary); font-weight: 600; }
+    .step-item.done   { color: var(--success); }
+
+    .step-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .step-item.active .step-dot {
+      background: var(--primary);
+      color: #fff;
+      animation: pulse 1.4s infinite;
+    }
+
+    .step-item.done .step-dot {
+      background: var(--success);
+      color: #fff;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50%       { transform: scale(1.15); }
+    }
+
+    /* ── 결과 화면 ── */
+    #result-section { display: none; }
+
+    .result-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #dcfce7;
+      color: var(--success-dark);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+
+    .result-doc-title {
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 12px 14px;
+      background: var(--primary-light);
+      border-left: 3px solid var(--primary);
+      border-radius: 0 8px 8px 0;
+      margin-bottom: 14px;
+      word-break: keep-all;
+      line-height: 1.5;
+    }
+
+    .result-preview {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.75;
+      max-height: 110px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 22px;
+    }
+
+    .result-preview::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 40px;
+      background: linear-gradient(transparent, #fff);
+    }
+
+    .action-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-download {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 15px;
+      background: var(--success);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-download:hover { background: var(--success-dark); }
+
+    .btn-outline {
+      width: 100%;
+      padding: 13px;
+      background: #fff;
+      color: var(--primary);
+      font-size: 0.95rem;
+      font-weight: 700;
+      border: 2px solid var(--primary);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-outline:hover { background: var(--primary-light); }
+
+    /* ── 오류 화면 ── */
+    #error-section { display: none; }
+
+    .error-card {
+      border: 2px solid #fecaca;
+      background: #fff5f5;
+    }
+
+    .error-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: #fee2e2;
+      color: var(--error);
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 14px;
+    }
+
+    #error-message {
+      font-size: 0.95rem;
+      color: #991b1b;
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    /* ── 푸터 ── */
+    footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ── 반응형 ── */
+    @media (min-width: 600px) {
+      header h1 { font-size: 1.75rem; }
+      main { padding: 32px 20px; }
+      .card { padding: 32px; }
+      .action-row { flex-direction: row; }
+      .btn-download { flex: 2; }
+      .btn-outline { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>📄 웹페이지 PDF 변환기</h1>
+  <p>복잡한 웹페이지를 클릭 한 번으로 읽기 좋은 PDF로</p>
+</header>
+
+<main>
+
+  <!-- 입력 화면 -->
+  <div id="input-section" class="card">
+    <label class="label" for="url-input">웹사이트 주소를 입력하세요</label>
+    <input
+      id="url-input"
+      type="text"
+      placeholder="https://example.com/article"
+      autocomplete="off"
+      spellcheck="false"
+    >
+    <div id="inline-error" class="inline-error"></div>
+    <button id="convert-btn" class="btn-primary" onclick="startConvert()">PDF 만들기</button>
+    <p class="legal-notice">
+      개인 학습 및 보관 목적으로만 사용하세요.<br>
+      로그인·유료·SNS 콘텐츠는 변환이 제한될 수 있습니다. 하루 5회 무료.
+    </p>
+  </div>
+
+  <!-- 처리 중 화면 -->
+  <div id="loading-section" class="card">
+    <div class="spinner"></div>
+    <div class="loading-title">변환 중입니다...</div>
+    <ul class="step-list">
+      <li class="step-item" id="step-1">
+        <span class="step-dot">1</span>
+        웹페이지에 접속하고 있습니다.
+      </li>
+      <li class="step-item" id="step-2">
+        <span class="step-dot">2</span>
+        본문을 읽고 있습니다.
+      </li>
+      <li class="step-item" id="step-3">
+        <span class="step-dot">3</span>
+        광고와 불필요한 요소를 정리하고 있습니다.
+      </li>
+      <li class="step-item" id="step-4">
+        <span class="step-dot">4</span>
+        PDF 파일을 만들고 있습니다.
+      </li>
+      <li class="step-item" id="step-5">
+        <span class="step-dot">5</span>
+        거의 다 되었습니다.
+      </li>
+    </ul>
+  </div>
+
+  <!-- 결과 화면 -->
+  <div id="result-section" class="card">
+    <div class="result-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      변환 완료
+    </div>
+    <div id="result-doc-title" class="result-doc-title"></div>
+    <div id="result-preview" class="result-preview"></div>
+    <div class="action-row">
+      <button class="btn-download" onclick="downloadPdf()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        PDF 다운로드
+      </button>
+      <button class="btn-outline" onclick="resetToInput()">다른 주소 입력</button>
+    </div>
+  </div>
+
+  <!-- 오류 화면 -->
+  <div id="error-section" class="card error-card">
+    <div class="error-badge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      변환 실패
+    </div>
+    <div id="error-message"></div>
+    <button class="btn-outline" onclick="resetToInput()">다시 시도하기</button>
+  </div>
+
+</main>
+
+<footer>
+  본 서비스는 개인 학습 및 보관 목적의 PDF 변환을 지원합니다.<br>
+  저작권이 있는 콘텐츠를 무단 배포하거나 상업적으로 이용해서는 안 됩니다.
+</footer>
+
+<script>
+  let currentFileId = null;
+  let progressTimer = null;
+
+  const $ = id => document.getElementById(id);
+
+  const sections = {
+    input:   $('input-section'),
+    loading: $('loading-section'),
+    result:  $('result-section'),
+    error:   $('error-section'),
+  };
+
+  const steps = [1,2,3,4,5].map(i => $(`step-${i}`));
+
+  function showSection(name) {
+    Object.values(sections).forEach(s => s.style.display = 'none');
+    sections[name].style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function startProgress() {
+    steps.forEach(s => { s.className = 'step-item'; s.querySelector('.step-dot').textContent = steps.indexOf(s) + 1; });
+    let cur = 0;
+
+    function tick() {
+      if (cur > 0) {
+        steps[cur - 1].classList.remove('active');
+        steps[cur - 1].classList.add('done');
+        steps[cur - 1].querySelector('.step-dot').textContent = '✓';
+      }
+      if (cur < steps.length) {
+        steps[cur].classList.add('active');
+        cur++;
+        progressTimer = setTimeout(tick, 3000);
+      }
+    }
+    tick();
+  }
+
+  function stopProgress() {
+    if (progressTimer) { clearTimeout(progressTimer); progressTimer = null; }
+  }
+
+  async function startConvert() {
+    const input = $('url-input');
+    const errEl = $('inline-error');
+    const btn   = $('convert-btn');
+
+    input.classList.remove('is-error');
+    errEl.classList.remove('show');
+    errEl.textContent = '';
+
+    const url = input.value.trim();
+    if (!url) {
+      input.classList.add('is-error');
+      errEl.textContent = '웹사이트 주소를 입력해 주세요.';
+      errEl.classList.add('show');
+      input.focus();
+      return;
+    }
+
+    btn.disabled = true;
+    showSection('loading');
+    startProgress();
+
+    try {
+      const res = await fetch('/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+
+      const data = await res.json();
+      stopProgress();
+
+      if (!res.ok) throw new Error(data.error || 'PDF 생성 중 문제가 발생했습니다.');
+
+      currentFileId = data.fileId;
+      $('result-doc-title').textContent = data.title || '제목 없음';
+      $('result-preview').textContent   = data.preview || '';
+      showSection('result');
+
+    } catch (err) {
+      stopProgress();
+      $('error-message').textContent = err.message || 'PDF 생성 중 문제가 발생했습니다. 다시 시도해 주세요.';
+      showSection('error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function downloadPdf() {
+    if (!currentFileId) return;
+    window.location.href = `/api/download/${currentFileId}`;
+  }
+
+  function resetToInput() {
+    stopProgress();
+    currentFileId = null;
+    $('url-input').value = '';
+    $('inline-error').classList.remove('show');
+    $('url-input').classList.remove('is-error');
+    showSection('input');
+    $('url-input').focus();
+  }
+
+  $('url-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') startConvert();
+  });
+</script>
+
+</body>
+</html>
